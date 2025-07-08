@@ -29,21 +29,21 @@ class _SignUpPageState extends State<SignUpPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.all(24.0),
+            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
             child: Form(
               key: _formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 20),
                   
                   // Header
                   _buildHeader(),
-                  const SizedBox(height: 50),
+                  const SizedBox(height: 40),
                   
                   // Welcome Text
                   _buildWelcomeText(),
@@ -88,30 +88,24 @@ class _SignUpPageState extends State<SignUpPage> {
           child: Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: const Color(0xFFF9FAFB),
               borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
-                  blurRadius: 10,
-                  offset: const Offset(0, 2),
-                ),
-              ],
+              border: Border.all(color: Colors.grey[200]!),
             ),
             child: const Icon(
               Icons.arrow_back_ios_new,
-              size: 20,
-              color: Colors.black54,
+              size: 16,
+              color: Color(0xFF6B7280),
             ),
           ),
         ),
         const SizedBox(width: 16),
         const Text(
-          'Sign Up',
+          'Create Account',
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w600,
-            color: Colors.black,
+            color: Color(0xFF1F2937),
           ),
         ),
       ],
@@ -123,16 +117,17 @@ class _SignUpPageState extends State<SignUpPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Create Account 🚀',
+          'Get started',
           style: TextStyle(
             fontSize: 28,
             fontWeight: FontWeight.bold,
-            color: Colors.black,
+            color: Color(0xFF1F2937),
+            letterSpacing: -0.5,
           ),
         ),
         const SizedBox(height: 8),
         Text(
-          'Join us and start managing your finances better',
+          'Create your account and start managing your finances',
           style: TextStyle(
             fontSize: 16,
             color: Colors.grey[600],
@@ -163,13 +158,13 @@ class _SignUpPageState extends State<SignUpPage> {
             return null;
           },
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 24),
         
         // Email Field
         _buildTextField(
           controller: _emailController,
-          label: 'Email Address',
-          hintText: 'Enter your email',
+          label: 'Email',
+          hintText: 'Enter your email address',
           keyboardType: TextInputType.emailAddress,
           prefixIcon: Icons.email_outlined,
           validator: (value) {
@@ -182,7 +177,7 @@ class _SignUpPageState extends State<SignUpPage> {
             return null;
           },
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 24),
         
         // Password Field
         _buildTextField(
@@ -194,7 +189,8 @@ class _SignUpPageState extends State<SignUpPage> {
           suffixIcon: IconButton(
             icon: Icon(
               _isPasswordVisible ? Icons.visibility_off : Icons.visibility,
-              color: Colors.grey[600],
+              color: Colors.grey[500],
+              size: 20,
             ),
             onPressed: () {
               setState(() {
@@ -215,7 +211,7 @@ class _SignUpPageState extends State<SignUpPage> {
             return null;
           },
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 24),
         
         // Confirm Password Field
         _buildTextField(
@@ -227,7 +223,8 @@ class _SignUpPageState extends State<SignUpPage> {
           suffixIcon: IconButton(
             icon: Icon(
               _isConfirmPasswordVisible ? Icons.visibility_off : Icons.visibility,
-              color: Colors.grey[600],
+              color: Colors.grey[500],
+              size: 20,
             ),
             onPressed: () {
               setState(() {
@@ -266,8 +263,8 @@ class _SignUpPageState extends State<SignUpPage> {
           label,
           style: const TextStyle(
             fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: Colors.black87,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF374151),
           ),
         ),
         const SizedBox(height: 8),
@@ -276,37 +273,49 @@ class _SignUpPageState extends State<SignUpPage> {
           keyboardType: keyboardType,
           obscureText: obscureText,
           validator: validator,
+          style: const TextStyle(
+            fontSize: 16,
+            color: Color(0xFF1F2937),
+          ),
           decoration: InputDecoration(
             hintText: hintText,
             hintStyle: TextStyle(
               color: Colors.grey[400],
-              fontSize: 14,
+              fontSize: 16,
             ),
             prefixIcon: prefixIcon != null
-                ? Icon(prefixIcon, color: Colors.grey[600], size: 20)
+                ? Icon(prefixIcon, color: Colors.grey[500], size: 20)
                 : null,
             suffixIcon: suffixIcon,
             filled: true,
-            fillColor: Colors.white,
+            fillColor: const Color(0xFFF9FAFB),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey[300]!),
+              borderSide: BorderSide(color: Colors.grey[200]!),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey[300]!),
+              borderSide: BorderSide(color: Colors.grey[200]!),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFF4F7DF9)),
+              borderSide: const BorderSide(color: Color(0xFF2563EB), width: 2),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Colors.red),
+              borderSide: const BorderSide(color: Color(0xFFEF4444)),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFEF4444), width: 2),
             ),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
               vertical: 16,
+            ),
+            errorStyle: const TextStyle(
+              color: Color(0xFFEF4444),
+              fontSize: 12,
             ),
           ),
         ),
@@ -319,7 +328,7 @@ class _SignUpPageState extends State<SignUpPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Transform.scale(
-          scale: 0.8,
+          scale: 0.9,
           child: Checkbox(
             value: _agreeToTerms,
             onChanged: (value) {
@@ -327,38 +336,42 @@ class _SignUpPageState extends State<SignUpPage> {
                 _agreeToTerms = value ?? false;
               });
             },
-            activeColor: const Color(0xFF4F7DF9),
+            activeColor: const Color(0xFF2563EB),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(4),
             ),
           ),
         ),
+        const SizedBox(width: 4),
         Expanded(
-          child: RichText(
-            text: TextSpan(
-              style: const TextStyle(
-                fontSize: 14,
-                color: Colors.black87,
-                height: 1.5,
+          child: Padding(
+            padding: const EdgeInsets.only(top: 12),
+            child: RichText(
+              text: TextSpan(
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Color(0xFF6B7280),
+                  height: 1.4,
+                ),
+                children: [
+                  const TextSpan(text: 'I agree to the '),
+                  TextSpan(
+                    text: 'Terms of Service',
+                    style: const TextStyle(
+                      color: Color(0xFF2563EB),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const TextSpan(text: ' and '),
+                  TextSpan(
+                    text: 'Privacy Policy',
+                    style: const TextStyle(
+                      color: Color(0xFF2563EB),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
               ),
-              children: [
-                const TextSpan(text: 'I agree to the '),
-                TextSpan(
-                  text: 'Terms of Service',
-                  style: TextStyle(
-                    color: const Color(0xFF4F7DF9),
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const TextSpan(text: ' and '),
-                TextSpan(
-                  text: 'Privacy Policy',
-                  style: TextStyle(
-                    color: const Color(0xFF4F7DF9),
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
             ),
           ),
         ),
@@ -367,23 +380,39 @@ class _SignUpPageState extends State<SignUpPage> {
   }
 
   Widget _buildSignUpButton() {
-    return SizedBox(
+    return Container(
       width: double.infinity,
       height: 56,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: _agreeToTerms
+            ? [
+                BoxShadow(
+                  color: const Color(0xFF2563EB).withOpacity(0.3),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ]
+            : [],
+      ),
       child: ElevatedButton(
-        onPressed: _agreeToTerms ? () {
-          if (_formKey.currentState!.validate()) {
-            // Handle sign up
-            _showSuccessDialog();
-          }
-        } : null,
+        onPressed: _agreeToTerms
+            ? () {
+                if (_formKey.currentState!.validate()) {
+                  // Handle sign up
+                  _showSuccessDialog();
+                }
+              }
+            : null,
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF4F7DF9),
+          backgroundColor: const Color(0xFF2563EB),
           foregroundColor: Colors.white,
-          elevation: 0,
           disabledBackgroundColor: Colors.grey[300],
+          disabledForegroundColor: Colors.grey[500],
+          elevation: 0,
+          shadowColor: Colors.transparent,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(12),
           ),
         ),
         child: const Text(
@@ -409,10 +438,11 @@ class _SignUpPageState extends State<SignUpPage> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Text(
-            'Or sign up with',
+            'Or continue with',
             style: TextStyle(
               fontSize: 14,
               color: Colors.grey[600],
+              fontWeight: FontWeight.w500,
             ),
           ),
         ),
@@ -433,7 +463,7 @@ class _SignUpPageState extends State<SignUpPage> {
           child: _buildSocialButton(
             'Google',
             Icons.g_mobiledata,
-            Colors.red,
+            const Color(0xFF4285F4),
           ),
         ),
         const SizedBox(width: 16),
@@ -441,7 +471,7 @@ class _SignUpPageState extends State<SignUpPage> {
           child: _buildSocialButton(
             'Apple',
             Icons.apple,
-            Colors.black,
+            const Color(0xFF000000),
           ),
         ),
       ],
@@ -454,7 +484,14 @@ class _SignUpPageState extends State<SignUpPage> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[300]!),
+        border: Border.all(color: Colors.grey[200]!),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Material(
         color: Colors.transparent,
@@ -476,8 +513,8 @@ class _SignUpPageState extends State<SignUpPage> {
                 text,
                 style: const TextStyle(
                   fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.black87,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF374151),
                 ),
               ),
             ],
@@ -503,11 +540,14 @@ class _SignUpPageState extends State<SignUpPage> {
             onPressed: () {
               Navigator.pop(context);
             },
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            ),
             child: const Text(
               'Sign In',
               style: TextStyle(
                 fontSize: 14,
-                color: Color(0xFF4F7DF9),
+                color: Color(0xFF2563EB),
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -524,20 +564,21 @@ class _SignUpPageState extends State<SignUpPage> {
       builder: (BuildContext context) {
         return AlertDialog(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(16),
           ),
+          backgroundColor: Colors.white,
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.green.withOpacity(0.1),
+                  color: const Color(0xFF10B981).withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
-                  Icons.check,
-                  color: Colors.green,
+                  Icons.check_circle_outline,
+                  color: Color(0xFF10B981),
                   size: 48,
                 ),
               ),
@@ -547,36 +588,49 @@ class _SignUpPageState extends State<SignUpPage> {
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black,
+                  color: Color(0xFF1F2937),
                 ),
               ),
               const SizedBox(height: 12),
               Text(
-                'Your account has been created successfully. You can now sign in.',
+                'Your account has been created successfully. You can now sign in and start managing your finances.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 14,
                   color: Colors.grey[600],
+                  height: 1.4,
                 ),
               ),
               const SizedBox(height: 24),
-              SizedBox(
+              Container(
                 width: double.infinity,
+                height: 48,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF2563EB).withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
                 child: ElevatedButton(
                   onPressed: () {
                     Navigator.of(context).pop();
                     Navigator.pushReplacementNamed(context, '/login');
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF4F7DF9),
+                    backgroundColor: const Color(0xFF2563EB),
                     foregroundColor: Colors.white,
                     elevation: 0,
+                    shadowColor: Colors.transparent,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
                   child: const Text(
-                    'Sign In',
+                    'Continue to Sign In',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
