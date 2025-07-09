@@ -21,8 +21,8 @@ This project is currently in development and serves as a modern starting point f
 
 - **Flutter** — UI Toolkit for cross-platform development  
 - **Dart** — Programming language  
-- **Provider*  
-- **Supabase*
+- *Provider*  
+- *Supabase*
 
 ## Getting Started
 
