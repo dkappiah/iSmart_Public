@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:mini_mobile_digital_wallet/pages/login.dart';
 import 'package:mini_mobile_digital_wallet/pages/signUp.dart';
 import 'package:mini_mobile_digital_wallet/pages/HomePage.dart';
+import 'package:mini_mobile_digital_wallet/providers/themeProvider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-
+import 'package:provider/provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,24 +22,30 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Digital Wallet',
-      debugShowCheckedModeBanner: false, //debug show banner
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
+    return ChangeNotifierProvider(
+      create: (context) => ThemeProvider(),
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProvider, child) {
+          return MaterialApp(
+            title: 'Digital Wallet',
+            debugShowCheckedModeBanner: false,
+            theme: themeProvider.lightTheme,
+            darkTheme: themeProvider.darkTheme,
+            themeMode: themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+            // initial route to auth pages
+            initialRoute: '/login',
+            routes: {
+              '/login': (context) => const LoginPage(),
+              '/signup': (context) => const SignUpPage(),
+              '/home': (context) => const HomePage(),
+            },
+            // login safety net (might take it out )
+            onUnknownRoute: (settings) {
+              return MaterialPageRoute(builder: (context) => const LoginPage());
+            },
+          );
+        },
       ),
-      // initial route to auth pages
-      initialRoute: '/login',
-      routes: {
-        '/login': (context) => const LoginPage(),
-        '/signup': (context) => const SignUpPage(),
-        '/home': (context) => const HomePage(),
-      },
-      // login safety net (might take it out )
-      onUnknownRoute: (settings) {
-        return MaterialPageRoute(builder: (context) => const LoginPage());
-      },
     );
   }
 }
