@@ -43,3 +43,10 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Environment files - KEEP THESE PRIVATE
+.env
+*.env
+.env.*
+*.env.*
+!.env.example

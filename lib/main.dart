@@ -2,9 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:mini_mobile_digital_wallet/pages/login.dart';
 import 'package:mini_mobile_digital_wallet/pages/signUp.dart';
 import 'package:mini_mobile_digital_wallet/pages/HomePage.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-void main() {
-  runApp(const MyApp());
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: ".env");
+  await Supabase.initialize(
+    url: dotenv.env['SUPABASE_URL']!,
+    anonKey: dotenv.env['SUPABASE_ANON_KEY']!,
+  );
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
