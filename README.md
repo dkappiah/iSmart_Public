@@ -1,16 +1,30 @@
-# mini_mobile_digital_wallet
+# Mini Mobile Digital Wallet
 
-A new Flutter project.
+A sleek and secure digital wallet mobile application built with **Flutter**.
+
+## Overview
+
+**Mini Mobile Digital Wallet** allows users to manage digital finances seamlessly from their smartphones. The app offers features like wallet creation, transaction history, balance tracking, and future support for virtual cards and payments.
+
+This project is currently in development and serves as a modern starting point for building a robust fintech mobile application using Flutter.
+
+## Features (Planned)
+
+- Create and manage digital wallets  
+- Send and receive money  
+- Transaction history  
+- Secure authentication  
+- Beautiful and responsive UI  
+- Cross-platform (Android, iOS, windows & macOS)
+
+##  Tech Stack
+
+- **Flutter** — UI Toolkit for cross-platform development  
+- **Dart** — Programming language  
+- *Provider*  
+- *Supabase*
 
 ## Getting Started
 
-This project is a starting point for a Flutter application.
+To get a local copy up and running:
 
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
