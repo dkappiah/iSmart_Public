@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({Key? key}) : super(key: key);
@@ -13,6 +14,7 @@ class _SignUpPageState extends State<SignUpPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  final _pinController = TextEditingController();
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
   bool _agreeToTerms = false;
@@ -23,6 +25,7 @@ class _SignUpPageState extends State<SignUpPage> {
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
+    _pinController.dispose();
     super.dispose();
   }
 
@@ -61,13 +64,10 @@ class _SignUpPageState extends State<SignUpPage> {
                   _buildSignUpButton(),
                   const SizedBox(height: 24),
                   
-                  // Or Divider
-                  _buildOrDivider(),
+
                   const SizedBox(height: 24),
                   
-                  // Social Login
-                  _buildSocialLogin(),
-                  const SizedBox(height: 32),
+                  // const SizedBox(height: 32),
                   
                   // Sign In Link
                   _buildSignInLink(),
@@ -242,6 +242,30 @@ class _SignUpPageState extends State<SignUpPage> {
             return null;
           },
         ),
+        const SizedBox(height: 24),
+        
+        // PIN Field
+        _buildTextField(
+          controller: _pinController,
+          label: 'PIN',
+          hintText: 'Enter 8-digit PIN',
+          obscureText: true,
+          keyboardType: TextInputType.number,
+          prefixIcon: Icons.pin_outlined,
+          inputFormatters: [
+            FilteringTextInputFormatter.digitsOnly,
+            LengthLimitingTextInputFormatter(8),
+          ],
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Please enter your PIN';
+            }
+            if (value.length != 8) {
+              return 'PIN must be exactly 8 digits';
+            }
+            return null;
+          },
+        ),
       ],
     );
   }
@@ -254,6 +278,7 @@ class _SignUpPageState extends State<SignUpPage> {
     bool obscureText = false,
     IconData? prefixIcon,
     Widget? suffixIcon,
+    List<TextInputFormatter>? inputFormatters,
     String? Function(String?)? validator,
   }) {
     return Column(
@@ -272,6 +297,7 @@ class _SignUpPageState extends State<SignUpPage> {
           controller: controller,
           keyboardType: keyboardType,
           obscureText: obscureText,
+          inputFormatters: inputFormatters,
           validator: validator,
           style: const TextStyle(
             fontSize: 16,
@@ -420,104 +446,6 @@ class _SignUpPageState extends State<SignUpPage> {
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildOrDivider() {
-    return Row(
-      children: [
-        Expanded(
-          child: Divider(
-            color: Colors.grey[300],
-            thickness: 1,
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Text(
-            'Or continue with',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[600],
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-        Expanded(
-          child: Divider(
-            color: Colors.grey[300],
-            thickness: 1,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSocialLogin() {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildSocialButton(
-            'Google',
-            Icons.g_mobiledata,
-            const Color(0xFF4285F4),
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: _buildSocialButton(
-            'Apple',
-            Icons.apple,
-            const Color(0xFF000000),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSocialButton(String text, IconData icon, Color iconColor) {
-    return Container(
-      height: 56,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[200]!),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () {
-            // Handle social login
-          },
-          borderRadius: BorderRadius.circular(12),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                icon,
-                color: iconColor,
-                size: 20,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                text,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF374151),
-                ),
-              ),
-            ],
           ),
         ),
       ),

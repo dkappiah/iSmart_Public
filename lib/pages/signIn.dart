@@ -57,13 +57,10 @@ class _LoginPageState extends State<LoginPage> {
                   const SizedBox(height: 24),
                   
                   // Or Divider
-                  _buildOrDivider(),
+                  //_buildOrDivider(),
                   const SizedBox(height: 24),
                   
-                  // Social Login
-                  _buildSocialLogin(),
-                  const SizedBox(height: 40),
-                  
+                          
                   // Sign Up Link
                   _buildSignUpLink(),
                 ],
@@ -369,103 +366,7 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  Widget _buildOrDivider() {
-    return Row(
-      children: [
-        Expanded(
-          child: Divider(
-            color: Colors.grey[300],
-            thickness: 1,
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Text(
-            'Or continue with',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[600],
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-        Expanded(
-          child: Divider(
-            color: Colors.grey[300],
-            thickness: 1,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSocialLogin() {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildSocialButton(
-            'Google',
-            Icons.g_mobiledata,
-            const Color(0xFF4285F4),
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: _buildSocialButton(
-            'Apple',
-            Icons.apple,
-            const Color(0xFF000000),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSocialButton(String text, IconData icon, Color iconColor) {
-    return Container(
-      height: 56,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[200]!),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () {
-            // Handle social login
-          },
-          borderRadius: BorderRadius.circular(12),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                icon,
-                color: iconColor,
-                size: 20,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                text,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF374151),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+  
 
   Widget _buildSignUpLink() {
     return Center(

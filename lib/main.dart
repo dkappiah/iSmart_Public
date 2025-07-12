@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mini_mobile_digital_wallet/pages/login.dart';
+import 'package:mini_mobile_digital_wallet/pages/signIn.dart';
 import 'package:mini_mobile_digital_wallet/pages/signUp.dart';
 import 'package:mini_mobile_digital_wallet/pages/HomePage.dart';
 import 'package:mini_mobile_digital_wallet/providers/themeProvider.dart';
