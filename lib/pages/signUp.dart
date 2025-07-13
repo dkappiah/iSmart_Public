@@ -12,6 +12,7 @@ class _SignUpPageState extends State<SignUpPage> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
+  final _telephoneController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _pinController = TextEditingController();
@@ -23,6 +24,7 @@ class _SignUpPageState extends State<SignUpPage> {
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
+    _telephoneController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     _pinController.dispose();
@@ -173,6 +175,32 @@ class _SignUpPageState extends State<SignUpPage> {
             }
             if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
               return 'Please enter a valid email';
+            }
+            return null;
+          },
+        ),
+        const SizedBox(height: 24),
+        
+        // Telephone Field
+        _buildTextField(
+          controller: _telephoneController,
+          label: 'Telephone',
+          hintText: 'Enter your telephone number (e.g., 233597456982)',
+          keyboardType: TextInputType.phone,
+          prefixIcon: Icons.phone_outlined,
+          inputFormatters: [
+            FilteringTextInputFormatter.digitsOnly,
+            LengthLimitingTextInputFormatter(12),
+          ],
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Please enter your telephone number';
+            }
+            if (value.length < 10) {
+              return 'Please enter a valid telephone number';
+            }
+            if (!RegExp(r'^[0-9]{10,12}$').hasMatch(value)) {
+              return 'Please enter a valid telephone number';
             }
             return null;
           },
