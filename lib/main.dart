@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mini_mobile_digital_wallet/pages/signIn.dart';
-import 'package:mini_mobile_digital_wallet/pages/signUp.dart';
+import 'package:mini_mobile_digital_wallet/pages/auth.dart'; 
 import 'package:mini_mobile_digital_wallet/pages/HomePage.dart';
 import 'package:mini_mobile_digital_wallet/providers/themeProvider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -32,16 +31,17 @@ class MyApp extends StatelessWidget {
             theme: themeProvider.lightTheme,
             darkTheme: themeProvider.darkTheme,
             themeMode: themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
-            // initial route to auth pages
-            initialRoute: '/login',
+            // initial route to auth page (sign-in by default)
+            initialRoute: '/auth',
             routes: {
-              '/login': (context) => const LoginPage(),
-              '/signup': (context) => const SignUpPage(),
+              '/auth': (context) => const AuthPage(isSignIn: true), // Sign-in screen
               '/home': (context) => const HomePage(),
             },
-            // login safety net (might take it out )
+            // login safety net
             onUnknownRoute: (settings) {
-              return MaterialPageRoute(builder: (context) => const LoginPage());
+              return MaterialPageRoute(
+                builder: (context) => const AuthPage(isSignIn: true),
+              );
             },
           );
         },

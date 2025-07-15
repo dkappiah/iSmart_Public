@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mini_mobile_digital_wallet/widget/navBar.dart';
 import 'package:mini_mobile_digital_wallet/providers/themeProvider.dart';
+import 'package:mini_mobile_digital_wallet/pages/payPage.dart'; // Add this import
 import 'package:provider/provider.dart';
 
 class HomePage extends StatefulWidget {
@@ -23,15 +24,15 @@ class _HomePageState extends State<HomePage> {
       case 0:
         break;
       case 1:
-        print('Navigate to Cards');
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const PayPage()),
+        );
         break;
       case 2:
-        print('Navigate to QR Scanner');
-        break;
-      case 3:
         print('Navigate to Transactions');
         break;
-      case 4:
+      case 3:
         print('Navigate to Profile');
         break;
     }
@@ -56,7 +57,7 @@ class _HomePageState extends State<HomePage> {
               // Recent Transactions
               _buildRecentTransactions(),
               
-              const SizedBox(height: 100), // Space for bottom navigation
+              const SizedBox(height: 100), // Space for bottom navigation BAR
             ],
           ),
         ),
@@ -125,26 +126,7 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               const SizedBox(width: 12),
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: const Center(
-                  child: Text(
-                    'AP',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
+              
             ],
           ),
         ],
@@ -217,39 +199,7 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           const SizedBox(height: 8),
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.green.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Row(
-                  children: [
-                    Icon(Icons.trending_up, color: Colors.green, size: 16),
-                    SizedBox(width: 4),
-                    Text(
-                      '+2.5%',
-                      style: TextStyle(
-                        color: Colors.green,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              const Text(
-                'from last month',
-                style: TextStyle(
-                  color: Colors.white70,
-                  fontSize: 12,
-                ),
-              ),
-            ],
-          ),
+
           const SizedBox(height: 24),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -257,7 +207,7 @@ class _HomePageState extends State<HomePage> {
               _buildActionButton(Icons.add_circle_outline, 'Add Money', Colors.white),
               _buildActionButton(Icons.send_outlined, 'Send', Colors.white),
               _buildActionButton(Icons.credit_card_outlined, 'Pay Bills', Colors.white),
-              _buildActionButton(Icons.more_horiz, 'More', Colors.white),
+              //_buildActionButton(Icons.more_horiz, 'More', Colors.white),
             ],
           ),
         ],

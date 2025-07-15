@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:mini_mobile_digital_wallet/services/authService.dart';
+
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({Key? key}) : super(key: key);
@@ -19,6 +21,10 @@ class _SignUpPageState extends State<SignUpPage> {
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
   bool _agreeToTerms = false;
+  bool _isLoading = false;
+
+  // Get auth service instance
+  final AuthService _authService = AuthServiceManager.instance;
 
   @override
   void dispose() {
@@ -65,11 +71,6 @@ class _SignUpPageState extends State<SignUpPage> {
                   // Sign Up Button
                   _buildSignUpButton(),
                   const SizedBox(height: 24),
-                  
-
-                  const SizedBox(height: 24),
-                  
-                  // const SizedBox(height: 32),
                   
                   // Sign In Link
                   _buildSignInLink(),
@@ -327,6 +328,7 @@ class _SignUpPageState extends State<SignUpPage> {
           obscureText: obscureText,
           inputFormatters: inputFormatters,
           validator: validator,
+          enabled: !_isLoading, // Disable during loading
           style: const TextStyle(
             fontSize: 16,
             color: Color(0xFF1F2937),
@@ -342,7 +344,7 @@ class _SignUpPageState extends State<SignUpPage> {
                 : null,
             suffixIcon: suffixIcon,
             filled: true,
-            fillColor: const Color(0xFFF9FAFB),
+            fillColor: _isLoading ? Colors.grey[50] : const Color(0xFFF9FAFB),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(color: Colors.grey[200]!),
@@ -385,7 +387,7 @@ class _SignUpPageState extends State<SignUpPage> {
           scale: 0.9,
           child: Checkbox(
             value: _agreeToTerms,
-            onChanged: (value) {
+            onChanged: _isLoading ? null : (value) {
               setState(() {
                 _agreeToTerms = value ?? false;
               });
@@ -439,7 +441,7 @@ class _SignUpPageState extends State<SignUpPage> {
       height: 56,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
-        boxShadow: _agreeToTerms
+        boxShadow: _agreeToTerms && !_isLoading
             ? [
                 BoxShadow(
                   color: const Color(0xFF2563EB).withOpacity(0.3),
@@ -450,13 +452,8 @@ class _SignUpPageState extends State<SignUpPage> {
             : [],
       ),
       child: ElevatedButton(
-        onPressed: _agreeToTerms
-            ? () {
-                if (_formKey.currentState!.validate()) {
-                  // Handle sign up
-                  _showSuccessDialog();
-                }
-              }
+        onPressed: _agreeToTerms && !_isLoading
+            ? _handleSignUp
             : null,
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF2563EB),
@@ -469,13 +466,22 @@ class _SignUpPageState extends State<SignUpPage> {
             borderRadius: BorderRadius.circular(12),
           ),
         ),
-        child: const Text(
-          'Create Account',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
+        child: _isLoading
+            ? const SizedBox(
+                height: 20,
+                width: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              )
+            : const Text(
+                'Create Account',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
       ),
     );
   }
@@ -493,7 +499,7 @@ class _SignUpPageState extends State<SignUpPage> {
             ),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: _isLoading ? null : () {
               Navigator.pop(context);
             },
             style: TextButton.styleFrom(
@@ -509,6 +515,53 @@ class _SignUpPageState extends State<SignUpPage> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  // Handle sign up with backend integration
+  Future<void> _handleSignUp() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final result = await _authService.signUp(
+        fullName: _nameController.text.trim(),
+        email: _emailController.text.trim(),
+        telephone: _telephoneController.text.trim(),
+        password: _passwordController.text,
+        pin: _pinController.text,
+      );
+
+      if (result.success) {
+        _showSuccessDialog();
+      } else {
+        _showErrorSnackBar(result.message ?? 'Failed to create account');
+      }
+    } catch (e) {
+      _showErrorSnackBar('An unexpected error occurred. Please try again.');
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: const Color(0xFFEF4444),
+        duration: const Duration(seconds: 4),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
       ),
     );
   }
@@ -549,7 +602,7 @@ class _SignUpPageState extends State<SignUpPage> {
               ),
               const SizedBox(height: 12),
               Text(
-                'Your account has been created successfully. You can now sign in and start managing your finances.',
+                'Your account has been created successfully. Please check your email for verification before signing in.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 14,

@@ -143,6 +143,27 @@ class ThemeProvider extends ChangeNotifier {
       ),
     ),
   );
+
+  // Add these getters
+  Color get backgroundColor => isDarkMode 
+      ? darkTheme.scaffoldBackgroundColor 
+      : lightTheme.scaffoldBackgroundColor;
+
+  Color get cardBackgroundColor => isDarkMode 
+      ? darkTheme.cardTheme.color! 
+      : lightTheme.cardTheme.color!;
+
+  Color get textPrimaryColor => isDarkMode 
+      ? darkTheme.textTheme.headlineLarge!.color! 
+      : lightTheme.textTheme.headlineLarge!.color!;
+
+  Color get textSecondaryColor => isDarkMode 
+      ? darkTheme.textTheme.bodyMedium!.color! 
+      : lightTheme.textTheme.bodyMedium!.color!;
+
+  Color get shadowColor => isDarkMode 
+      ? Colors.black.withOpacity(0.3) 
+      : const Color(0xFF3B82F6).withOpacity(0.1);
 }
 
 // Helper extension to get theme-aware colors
