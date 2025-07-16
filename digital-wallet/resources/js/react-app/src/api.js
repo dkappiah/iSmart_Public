@@ -12,7 +12,7 @@ const apiClient = axios.create({
 
 export const getCsrfToken = async () => {
     try {
-        await apiClient.get('/sanctum/csrf-cookie'); 
+        await axios.get('http://digital-wallet.test/sanctum/csrf-cookie', { withCredentials: true }); 
     } catch (error) {
         console.error("Failed to get CSRF cookie:", error);
         throw error; 

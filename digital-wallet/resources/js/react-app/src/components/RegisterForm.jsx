@@ -1,0 +1,72 @@
+import React, { useState } from 'react';
+import apiClient, { getCsrfToken } from '../api'; 
+
+function RegisterForm({ onAuthSuccess }) {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [passwordConfirmation, setPasswordConfirmation] = useState('');
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    try {
+      await getCsrfToken(); 
+
+      const response = await apiClient.post('/register', {
+        name,
+        email,
+        password,
+        password_confirmation: passwordConfirmation,
+      });
+
+      console.log('Registration successful:', response.data);
+      onAuthSuccess(response.data.user); 
+    } catch (err) {
+      console.error('Registration error:', err);
+      if (err.response && err.response.data && err.response.data.errors) {
+        // Laravel validation errors
+        setError(Object.values(err.response.data.errors).flat().join('\n'));
+      } else if (err.response && err.response.data && err.response.data.message) {
+        // Other Laravel errors
+        setError(err.response.data.message);
+      } else {
+        setError('An unexpected error occurred during registration.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="auth-form">
+      <h2>Register</h2>
+      {error && <p className="error-message" style={{ color: 'red', whiteSpace: 'pre-line' }}>{error}</p>}
+      <div>
+        <label>Name:</label>
+        <input type="text" value={name} onChange={(e) => setName(e.target.value)} required />
+      </div>
+      <div>
+        <label>Email:</label>
+        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+      </div>
+      <div>
+        <label>Password:</label>
+        <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+      </div>
+      <div>
+        <label>Confirm Password:</label>
+        <input type="password" value={passwordConfirmation} onChange={(e) => setPasswordConfirmation(e.target.value)} required />
+      </div>
+      <button type="submit" disabled={loading}>
+        {loading ? 'Registering...' : 'Register'}
+      </button>
+    </form>
+  );
+}
+
+export default RegisterForm;

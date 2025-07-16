@@ -1,45 +1,93 @@
 import { useState, useEffect } from 'react';
+import apiClient, { getCsrfToken } from './api'; 
+import RegisterForm from './components/RegisterForm';
+import LoginForm from './components/LoginForm';
 import './App.css'; 
 
 function App() {
-  const [apiMessage, setApiMessage] = useState('Loading message from Laravel...');
-  const [error, setError] = useState(null);
+  const [user, setUser] = useState(null); 
+  const [loadingUser, setLoadingUser] = useState(true); 
+  const [apiMessage, setApiMessage] = useState(''); 
+  const [error, setError] = useState(null); 
+
 
   useEffect(() => {
-
-    const apiUrl = 'http://digital-wallet.test/api/welcome';
-
-    fetch(apiUrl)
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-      })
-      .then(data => {
-        setApiMessage(data.message); 
-      })
-      .catch(error => {
-        console.error("There was an error fetching the API message:", error);
-        setError("Failed to load message from Laravel: " + error.message);
-        setApiMessage("Error connecting to Laravel API."); 
-      });
+    const fetchWelcomeMessage = async () => {
+      try {
+        const response = await apiClient.get('/welcome');
+        setApiMessage(response.data.message);
+      } catch (err) {
+        console.error("Error fetching welcome message:", err);
+        setApiMessage("Error connecting to Laravel API for welcome message.");
+      }
+    };
+    fetchWelcomeMessage();
   }, []);
+
+  
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await apiClient.get('/user'); 
+        setUser(response.data);
+        console.log('User already authenticated:', response.data);
+      } catch (err) {
+        console.log('No user authenticated or session expired:', err.response?.status);
+        setUser(null);
+      } finally {
+        setLoadingUser(false);
+      }
+    };
+    checkAuth();
+  }, []);
+
+  const handleAuthSuccess = (userData) => {
+    setUser(userData);
+    console.log('Authentication successful, user set:', userData);
+    setError(null); 
+  };
+
+  const handleLogout = async () => {
+    setError(null);
+    try {
+      await getCsrfToken(); 
+      await apiClient.post('/logout');
+      setUser(null); 
+      console.log('Logged out successfully.');
+    } catch (err) {
+      console.error('Logout error:', err);
+      setError('Failed to log out.');
+    }
+  };
+
+  if (loadingUser) {
+    return <div className="App"><p>Loading application...</p></div>;
+  }
 
   return (
     <div className="App">
       <header className="App-header">
         <h1>Digital Wallet App</h1>
-        <p>
-          Message from Laravel Backend:
-        </p>
-        {error ? (
-          <p style={{ color: 'red' }}>{error}</p>
+        <p>Laravel API Status: <strong>{apiMessage}</strong></p>
+
+        {user ? (
+          <div className="dashboard">
+            <h2>Welcome, {user.name}!</h2>
+            <p>Your Balance: ${user.balance ? user.balance.toFixed(2) : '0.00'}</p>
+            {}
+            <button onClick={handleLogout}>Logout</button>
+          </div>
         ) : (
-          <p><strong>{apiMessage}</strong></p>
+          
+          <div className="auth-section">
+            <h2>Authentication</h2>
+            {error && <p className="error-message" style={{ color: 'red' }}>{error}</p>}
+            <div>
+                <LoginForm onAuthSuccess={handleAuthSuccess} />
+                <RegisterForm onAuthSuccess={handleAuthSuccess} />
+            </div>
+          </div>
         )}
-        <p>
-        </p>
       </header>
     </div>
   );
