@@ -18,6 +18,7 @@ return new class extends Migration
             $table->float('amount'); 
             $table->text('description')->nullable();
             $table->string('status')->default('completed'); 
+            $table-> foreignId('related_user_id') -> nullable() -> constrained('users') -> onDelete('set null');
             $table->timestamps();
         });
     }

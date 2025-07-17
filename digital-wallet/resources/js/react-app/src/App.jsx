@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import apiClient, { getCsrfToken } from './api'; 
 import RegisterForm from './components/RegisterForm';
 import LoginForm from './components/LoginForm';
-import './App.css'; 
+import DepositForm from './components/DepositForm';
+import './css/App.css'; 
 
 function App() {
   const [user, setUser] = useState(null); 
@@ -74,7 +75,18 @@ function App() {
           <div className="dashboard">
             <h2>Welcome, {user.name}!</h2>
             <p>Your Balance: ${user.balance ? user.balance.toFixed(2) : '0.00'}</p>
-            {}
+            <div className="actions">
+              <button onClick={() => console.log('Deposit Clicked')}>Add Funds</button> {/* Placeholder for now */}
+              <button onClick={() => console.log('Transfer Clicked')}>Transfer Funds</button> {/* Placeholder for now */}
+              <button onClick={() => console.log('History Clicked')}>View History</button> {/* Placeholder for now */}
+            </div>
+
+        <div className="wallet-features">
+            <DepositForm
+                onDepositSuccess={(newBalance) => setUser(prevUser => ({ ...prevUser, balance: newBalance }))}
+            />
+            
+        </div>
             <button onClick={handleLogout}>Logout</button>
           </div>
         ) : (
