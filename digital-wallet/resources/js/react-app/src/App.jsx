@@ -1,15 +1,17 @@
 import { useState, useEffect } from 'react';
 import apiClient, { getCsrfToken } from './api'; 
+import './css/App.css'; 
 import RegisterForm from './components/RegisterForm';
 import LoginForm from './components/LoginForm';
 import DepositForm from './components/DepositForm';
-import './css/App.css'; 
+import TransferForm from './components/TransferForm';
 
 function App() {
   const [user, setUser] = useState(null); 
   const [loadingUser, setLoadingUser] = useState(true); 
-  const [apiMessage, setApiMessage] = useState(''); 
+  const [apiMessage, setApiMessage] = useState(null); 
   const [error, setError] = useState(null); 
+  const [activeFeature, setActiveFeature] = useState('deposit');
 
 
   useEffect(() => {
@@ -73,24 +75,40 @@ function App() {
 
         {user ? (
           <div className="dashboard">
-            <h2>Welcome, {user.name}!</h2>
-            <p>Your Balance: ${user.balance ? user.balance.toFixed(2) : '0.00'}</p>
-            <div className="actions">
-              <button onClick={() => console.log('Deposit Clicked')}>Add Funds</button> {/* Placeholder for now */}
-              <button onClick={() => console.log('Transfer Clicked')}>Transfer Funds</button> {/* Placeholder for now */}
-              <button onClick={() => console.log('History Clicked')}>View History</button> {/* Placeholder for now */}
-            </div>
+        <h2>Welcome, {user.name}!</h2>
+        <p>Your Balance: ${user.balance ? user.balance.toFixed(2) : '0.00'}</p>
+
+        <div className="actions">
+            <button onClick={() => setActiveFeature('deposit')} className={activeFeature === 'deposit' ? 'active-nav-button' : ''}>
+              Add Funds
+            </button>
+            <button onClick={() => setActiveFeature('transfer')} className={activeFeature === 'transfer' ? 'active-nav-button' : ''}>
+              Transfer Funds
+            </button>
+            <button onClick={() => setActiveFeature('history')} className={activeFeature === 'history' ? 'active-nav-button' : ''}>
+                View History
+            </button>
+        </div>
 
         <div className="wallet-features">
-            <DepositForm
-                onDepositSuccess={(newBalance) => setUser(prevUser => ({ ...prevUser, balance: newBalance }))}
-            />
+            {activeFeature === 'deposit' && (
+                <DepositForm
+                    onDepositSuccess={(newBalance) => setUser(prevUser => ({ ...prevUser, balance: newBalance }))}
+                    currentBalance={user.balance} 
+                />
+            )}
+            {activeFeature === 'transfer' && (
+                <TransferForm
+                    onTransferSuccess={(newBalance) => setUser(prevUser => ({ ...prevUser, balance: newBalance }))}
+                    currentBalance={user.balance} 
+                />
+            )}
             
         </div>
-            <button onClick={handleLogout}>Logout</button>
-          </div>
-        ) : (
-          
+
+        <button onClick={handleLogout} className="logout-button">Logout</button>
+    </div>
+) : (
           <div className="auth-section">
             <h2>Authentication</h2>
             {error && <p className="error-message" style={{ color: 'red' }}>{error}</p>}
