@@ -32,6 +32,6 @@ Route::middleware('auth:sanctum') -> group(function(){
     Route::get('/wallet/balance', [WalletController::class, 'getBalance']);
     Route::post('/wallet/deposit', [WalletController::class, 'deposit']);
     Route::post('/wallet/transfer', [WalletController::class, 'transfer']);
-
+    Route::get('/wallet/transactions', [WalletController::class, 'getTransactions']);
 });
 
