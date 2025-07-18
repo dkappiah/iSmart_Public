@@ -107,6 +107,50 @@ class WalletController extends Controller
         ]);
 
     }
+
+    public function getTransactions($request) {
+        $user = $request -> user();
+        if (!$user) {
+            return response() -> json(['message' => 'Unauthourised'], 401);
+        }
+
+        $transactions = Transaction::where('user_id', $user->id) -> orWhere('related_user_id', $user -> id) -> orderByDec('created_at') -> get();
+
+        $formattedTransactions = $transactions -> map (function($transaction) use ($user){
+            $description = $transaction -> description;
+            $relatedUser = null;
+
+            if (in_array($transaction -> type, ['transfer_sent', 'transfer_received'])){
+                if($transaction -> related_user_id){
+                    $relatedUser = User::find($transaction->related_user_id);
+                }
+
+                if($transaction -> type ==='transfer_sent'){
+                    $description = 'Funds transferred to ' . ($relatedUser -> name) . ' : ' . $description;
+                } elseif($transaction -> type === 'transfer_received'){
+                    $sender = User::find($transaction -> related_user_id);
+                    $description = 'Funds transferred from' . ($sender -> name) . ':' . $description;
+                }
+
+            }
+
+            return [ 
+                'id' => $transaction->id,
+                'type' => str_replace('_', ' ', $transaction->type), 
+                'amount' => $transaction->amount,
+                'description' => $description,
+                'date' => $transaction->created_at->format('Y-m-d H:i:s'), 
+                'status' => $transaction->status,
+                'user_id' => $transaction->user_id, 
+                'related_user_id' => $transaction->related_user_id, 
+                'is_sender' => ($transaction->type === 'transfer_sent' && $transaction->user_id === $user->id),
+                'is_receiver' => ($transaction->type === 'transfer_received' && $transaction->user_id === $user->id),
+            ];
+        });
+
+        return response() -> json (['transactions' => $formattedTransactions]);
+
+    }
 }
     
 
