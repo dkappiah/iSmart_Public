@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:mini_mobile_digital_wallet/pages/profilePage.dart';
+import 'package:mini_mobile_digital_wallet/pages/addMoney.dart';
+import 'package:mini_mobile_digital_wallet/pages/transactionPage.dart';
+import 'package:mini_mobile_digital_wallet/pages/transferFunds.dart';
 import 'package:mini_mobile_digital_wallet/widget/navBar.dart';
 import 'package:mini_mobile_digital_wallet/providers/themeProvider.dart';
-import 'package:mini_mobile_digital_wallet/pages/payPage.dart'; // Add this import
+import 'package:mini_mobile_digital_wallet/pages/payPage.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -13,63 +18,237 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _currentIndex = 0;
-  bool _isBalanceVisible = true;
+
+  // List of pages for navigation
+  final List<Widget> _pages = [
+    const _HomeContent(), 
+    const PayPage(),
+    const TransactionsPage(),
+    const ProfilePage(),
+  ];
 
   void _onNavTap(int index) {
+    if (_currentIndex == index) return;
+    
     setState(() {
       _currentIndex = index;
     });
-    
-    switch (index) {
-      case 0:
-        break;
-      case 1:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const PayPage()),
-        );
-        break;
-      case 2:
-        print('Navigate to Transactions');
-        break;
-      case 3:
-        print('Navigate to Profile');
-        break;
-    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    
     return Scaffold(
       backgroundColor: context.backgroundColor,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              // Header Section
-              _buildHeader(),
-              
-              // Balance Card
-              _buildBalanceCard(),
-                            
-              // Recent Transactions
-              _buildRecentTransactions(),
-              
-              const SizedBox(height: 100), // Space for bottom navigation BAR
-            ],
-          ),
-        ),
-      ),
+      body: _pages[_currentIndex],
       bottomNavigationBar: CustomBottomNavBar(
         currentIndex: _currentIndex,
         onTap: _onNavTap,
       ),
     );
   }
+}
 
-  Widget _buildHeader() {
+class _HomeContent extends StatefulWidget {
+  const _HomeContent({Key? key}) : super(key: key);
+
+  @override
+  State<_HomeContent> createState() => _HomeContentState();
+}
+
+class _HomeContentState extends State<_HomeContent> {
+  bool _isBalanceVisible = true;
+  bool _isLoading = true;
+  
+  // User and wallet data
+  Map<String, dynamic>? _userData;
+  Map<String, dynamic>? _walletData;
+  List<Map<String, dynamic>> _recentTransactions = [];
+  
+  final SupabaseClient _supabase = Supabase.instance.client;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    try {
+      setState(() => _isLoading = true);
+      
+      final user = _supabase.auth.currentUser;
+      if (user == null) {
+        // Handle unauthenticated user
+        Navigator.of(context).pushReplacementNamed('/login');
+        return;
+      }
+
+      print('Current user ID: ${user.id}'); // Debug log
+
+      // Fetch user data
+      final userResponse = await _supabase
+          .from('users')
+          .select('*')
+          .eq('auth_user_id', user.id)
+          .single();
+
+      print('User response: $userResponse'); // Debug log
+      
+      _userData = userResponse;
+      print('User full name: ${_userData?['full_name']}'); // Debug log
+      
+      if (_userData != null) {
+        // Fetch wallet data
+        try {
+          final walletResponse = await _supabase
+              .from('wallets')
+              .select('*')
+              .eq('user_id', _userData!['id'])
+              .single();
+              
+          print('Wallet response: $walletResponse'); // Debug log
+          _walletData = walletResponse;
+        } catch (walletError) {
+          print('Wallet error: $walletError');
+          // If no wallet exists, create one
+          if (walletError.toString().contains('No rows found')) {
+            await _createWalletForUser();
+          } else {
+            print('Error fetching wallet: $walletError');
+          }
+        }
+        
+        // Fetch recent transactions
+        await _loadRecentTransactions();
+      }
+      
+    } catch (error) {
+      print('Error loading user data: $error');
+      // Show error message to user
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error loading user data: ${error.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  Future<void> _createWalletForUser() async {
+    try {
+      print('Creating wallet for user: ${_userData!['id']}');
+      final walletResponse = await _supabase
+          .from('wallets')
+          .insert({
+            'user_id': _userData!['id'],
+            'balance': 0.00,
+            'currency': 'GHS',
+          })
+          .select()
+          .single();
+          
+      _walletData = walletResponse;
+      print('Wallet created successfully: $walletResponse');
+    } catch (error) {
+      print('Error creating wallet: $error');
+    }
+  }
+
+  Future<void> _loadRecentTransactions() async {
+    try {
+      final response = await _supabase
+          .from('transactions')
+          .select()
+          .eq('wallet_id', _walletData!['id'])
+          .order('created_at', ascending: false)
+          .limit(3);
+          
+      if (response != null) {
+        _recentTransactions = List<Map<String, dynamic>>.from(response);
+      }
+    } catch (error) {
+      print('Error loading transactions: $error');
+    }
+  }
+
+  
+
+  void _toggleBalanceVisibility() {
+    setState(() {
+      _isBalanceVisible = !_isBalanceVisible;
+    });
+  }
+
+  String _getGreeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return 'Good Morning';
+    if (hour < 17) return 'Good Afternoon';
+    return 'Good Evening';
+  }
+
+  String _formatAmount(double amount, {bool hideDecimals = false}) {
+    final currency = _walletData?['currency'] ?? 'GHS';
+    final symbol = currency == 'GHS' ? '₵' : currency;
+    
+    if (hideDecimals) {
+      return '$symbol${amount.toStringAsFixed(0)}';
+    }
+    return '$symbol${amount.toStringAsFixed(2)}';
+  }
+
+  String _formatTransactionDate(String dateString) {
+    final date = DateTime.parse(dateString);
+    final now = DateTime.now();
+    final difference = now.difference(date).inDays;
+    
+    if (difference == 0) {
+      return 'Today, ${TimeOfDay.fromDateTime(date).format(context)}';
+    } else if (difference == 1) {
+      return 'Yesterday, ${TimeOfDay.fromDateTime(date).format(context)}';
+    } else {
+      return '${date.day}/${date.month}/${date.year}';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+
+    return SafeArea(
+      child: RefreshIndicator(
+        onRefresh: _loadUserData,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Column(
+            children: [
+              // Header Section
+              _buildHeader(context),
+              
+              // Balance Card
+              _buildBalanceCard(context),
+                          
+              // Recent Transactions
+              _buildRecentTransactions(context),
+              
+              const SizedBox(height: 100), // Space for bottom navigation bar
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     
     return Container(
@@ -81,7 +260,7 @@ class _HomePageState extends State<HomePage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Good Morning',
+                _getGreeting(),
                 style: TextStyle(
                   fontSize: 14,
                   color: context.textSecondaryColor,
@@ -90,7 +269,7 @@ class _HomePageState extends State<HomePage> {
               ),
               const SizedBox(height: 4),
               Text(
-                'Autumn Phillips',
+                _userData?['full_name']?.toString() ?? 'Loading...',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.w700,
@@ -115,7 +294,7 @@ class _HomePageState extends State<HomePage> {
                         color: context.shadowColor,
                         blurRadius: 10,
                         offset: const Offset(0, 4),
-                      ),
+                      )
                     ],
                   ),
                   child: Icon(
@@ -126,7 +305,6 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               const SizedBox(width: 12),
-              
             ],
           ),
         ],
@@ -134,7 +312,9 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildBalanceCard() {
+  Widget _buildBalanceCard(BuildContext context) {
+    final balance = _walletData?['balance']?.toDouble() ?? 0.0;
+    
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20),
       padding: const EdgeInsets.all(28),
@@ -168,11 +348,7 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _isBalanceVisible = !_isBalanceVisible;
-                  });
-                },
+                onTap: _toggleBalanceVisibility,
                 child: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
@@ -190,7 +366,7 @@ class _HomePageState extends State<HomePage> {
           ),
           const SizedBox(height: 12),
           Text(
-            _isBalanceVisible ? '₵12,847.65' : '********', // ••••••••
+            _isBalanceVisible ? _formatAmount(balance) : '₵••••••',
             style: const TextStyle(
               color: Colors.white,
               fontSize: 36,
@@ -199,15 +375,12 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           const SizedBox(height: 8),
-
           const SizedBox(height: 24),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildActionButton(Icons.add_circle_outline, 'Add Money', Colors.white),
-              _buildActionButton(Icons.send_outlined, 'Send', Colors.white),
-              _buildActionButton(Icons.credit_card_outlined, 'Pay Bills', Colors.white),
-              //_buildActionButton(Icons.more_horiz, 'More', Colors.white),
+              _buildActionButton(context, Icons.add_circle_outline, 'Add Funds', Colors.white),
+              _buildActionButton(context, Icons.send_outlined, 'Transfer Funds', Colors.white),
             ],
           ),
         ],
@@ -215,159 +388,61 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildActionButton(IconData icon, String label, Color color) {
-    return Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.15),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: color.withOpacity(0.3)),
-          ),
-          child: Icon(
-            icon,
-            color: color,
-            size: 24,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          label,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildServicesGrid() {
-    return Container(
-      margin: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Services',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-              color: context.textPrimaryColor,
-            ),
-          ),
-          const SizedBox(height: 16),
-          GridView.count(
-            crossAxisCount: 4,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            mainAxisSpacing: 16,
-            crossAxisSpacing: 16,
-            children: [
-              _buildServiceItem(Icons.phone_android, 'Mobile\nRecharge', const Color(0xFF3B82F6)),
-              _buildServiceItem(Icons.flash_on, 'Electricity', const Color(0xFF10B981)),
-              _buildServiceItem(Icons.wifi, 'Internet', const Color(0xFF8B5CF6)),
-              _buildServiceItem(Icons.local_gas_station, 'Gas', const Color(0xFFF59E0B)),
-              _buildServiceItem(Icons.water_drop, 'Water', const Color(0xFF06B6D4)),
-              _buildServiceItem(Icons.school, 'Education', const Color(0xFFEF4444)),
-              _buildServiceItem(Icons.favorite, 'Insurance', const Color(0xFFEC4899)),
-              _buildServiceItem(Icons.more_horiz, 'More', const Color(0xFF6B7280)),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildServiceItem(IconData icon, String label, Color color) {
+  Widget _buildActionButton(BuildContext context, IconData icon, String label, Color color) {
     return GestureDetector(
       onTap: () {
-        print('Service: $label');
+        // Handle action button taps
+        switch (label) {
+          case 'Add Funds':
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => AddMoneyPage()),
+            );
+            break;
+          case 'Transfer Funds':
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => TransferFundsPage()),
+            );
+            // Add your Send navigation here
+            break;
+          // case 'Pay Bills':
+          //   // Add your Pay Bills navigation here
+          //   break;
+        }
       },
-      child: Container(
-        decoration: BoxDecoration(
-          color: context.cardBackgroundColor,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: context.shadowColor,
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: color.withOpacity(0.3)),
             ),
-          ],
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                icon,
-                color: color,
-                size: 24,
-              ),
+            child: Icon(
+              icon,
+              color: color,
+              size: 24,
             ),
-            const SizedBox(height: 8),
-            Text(
-              label,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w500,
-                color: context.textSecondaryColor,
-              ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
 
-  Widget _buildActivityItem(String title, String amount, Color color, IconData icon) {
-    return Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Icon(
-            icon,
-            color: color,
-            size: 20,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: 12,
-            color: context.textSecondaryColor,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          amount,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w700,
-            color: color,
-          ),
-        ),
-      ],
-    );
-  }
 
-  Widget _buildRecentTransactions() {
+  Widget _buildRecentTransactions(BuildContext context) {
     return Container(
       margin: const EdgeInsets.all(20),
       child: Column(
@@ -383,56 +458,55 @@ class _HomePageState extends State<HomePage> {
                   fontWeight: FontWeight.w700,
                   color: context.textPrimaryColor,
                 ),
-              ),
-              TextButton(
-                onPressed: () {},
-                child: const Text(
-                  'View All',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Color(0xFF3B82F6),
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
+              )
             ],
           ),
           const SizedBox(height: 16),
-          _buildTransactionItem(
-            'S',
-            'Spotify Premium',
-            'Music & Entertainment',
-            'Today, 2:30 PM',
-            '-₵9.99',
-            const Color(0xFF10B981),
-            true,
-          ),
-          const SizedBox(height: 12),
-          _buildTransactionItem(
-            'AB',
-            'Alex Buckmaster',
-            'Money Transfer',
-            'Yesterday, 4:15 PM',
-            '-₵150.00',
-            const Color(0xFF3B82F6),
-            false,
-          ),
-          const SizedBox(height: 12),
-          _buildTransactionItem(
-            'P',
-            'Payroll Deposit',
-            'Salary Payment',
-            'Dec 25, 2024',
-            '+₵3,250.00',
-            const Color(0xFF059669),
-            false,
-          ),
+          if (_recentTransactions.isEmpty)
+            const Center(
+              child: Text('No recent transactions'),
+            )
+          else
+            ..._recentTransactions.map((transaction) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: _buildTransactionItem(
+                  context,
+                  _getTransactionInitial(transaction['title']),
+                  transaction['title'] ?? 'Unknown',
+                  transaction['category'] ?? 'General',
+                  _formatTransactionDate(transaction['created_at']),
+                  _formatAmount(transaction['amount']?.toDouble() ?? 0.0),
+                  _getTransactionColor(transaction['type']),
+                  transaction['is_recurring'] ?? false,
+                ),
+              );
+            }).toList(),
         ],
       ),
     );
   }
 
+  String _getTransactionInitial(String? title) {
+    if (title == null || title.isEmpty) return 'T';
+    return title[0].toUpperCase();
+  }
+
+  Color _getTransactionColor(String? type) {
+    switch (type) {
+      case 'income':
+        return const Color(0xFF059669);
+      case 'expense':
+        return const Color(0xFF10B981);
+      case 'transfer':
+        return const Color(0xFF3B82F6);
+      default:
+        return const Color(0xFF6B7280);
+    }
+  }
+
   Widget _buildTransactionItem(
+    BuildContext context,
     String initial,
     String title,
     String subtitle,

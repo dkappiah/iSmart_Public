@@ -30,7 +30,7 @@ class CustomBottomNavBar extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           _buildNavItem(Icons.home_rounded, 0, 'Home'),
-          _buildNavItem(Icons.payment_outlined, 1, 'Pay'),
+          //_buildNavItem(Icons.payment_outlined, 1, 'Pay'),
           _buildNavItem(Icons.receipt_long_outlined, 2, 'Transactions'),
           _buildNavItem(Icons.person_2_outlined, 3, 'Profile'),
           //_buildNavItem(Icons.history_rounded, 4, 'History'),
