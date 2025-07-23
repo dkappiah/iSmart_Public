@@ -5,7 +5,6 @@ import 'package:mini_mobile_digital_wallet/pages/transactionPage.dart';
 import 'package:mini_mobile_digital_wallet/pages/transferFunds.dart';
 import 'package:mini_mobile_digital_wallet/widget/navBar.dart';
 import 'package:mini_mobile_digital_wallet/providers/themeProvider.dart';
-import 'package:mini_mobile_digital_wallet/pages/payPage.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -22,7 +21,6 @@ class _HomePageState extends State<HomePage> {
   // List of pages for navigation
   final List<Widget> _pages = [
     const _HomeContent(), 
-    const PayPage(),
     const TransactionsPage(),
     const ProfilePage(),
   ];
