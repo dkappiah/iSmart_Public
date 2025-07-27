@@ -5,6 +5,7 @@ import RegisterForm from './components/RegisterForm';
 import LoginForm from './components/LoginForm';
 import DepositForm from './components/DepositForm';
 import TransferForm from './components/TransferForm';
+import TransactionHistory from './components/TransactionHistory';
 
 function App() {
   const [user, setUser] = useState(null); 
@@ -79,13 +80,13 @@ function App() {
         <p>Your Balance: ${user.balance ? user.balance.toFixed(2) : '0.00'}</p>
 
         <div className="actions">
-            <button onClick={() => setActiveFeature('deposit')} className={activeFeature === 'deposit' ? 'active-nav-button' : ''}>
+            <button onClick={() => setActiveFeature('deposit')}>
               Add Funds
             </button>
-            <button onClick={() => setActiveFeature('transfer')} className={activeFeature === 'transfer' ? 'active-nav-button' : ''}>
+            <button onClick={() => setActiveFeature('transfer')}>
               Transfer Funds
             </button>
-            <button onClick={() => setActiveFeature('history')} className={activeFeature === 'history' ? 'active-nav-button' : ''}>
+            <button onClick={() => setActiveFeature('history')}>
                 View History
             </button>
         </div>
@@ -102,6 +103,10 @@ function App() {
                     onTransferSuccess={(newBalance) => setUser(prevUser => ({ ...prevUser, balance: newBalance }))}
                     currentBalance={user.balance} 
                 />
+            )}
+
+            {activeFeature === 'history' && (
+                <TransactionHistory/>
             )}
             
         </div>
