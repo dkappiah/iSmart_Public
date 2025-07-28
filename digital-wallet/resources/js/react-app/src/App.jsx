@@ -10,23 +10,9 @@ import TransactionHistory from './components/TransactionHistory';
 function App() {
   const [user, setUser] = useState(null); 
   const [loadingUser, setLoadingUser] = useState(true); 
-  const [apiMessage, setApiMessage] = useState(null); 
   const [error, setError] = useState(null); 
   const [activeFeature, setActiveFeature] = useState('deposit');
-
-
-  useEffect(() => {
-    const fetchWelcomeMessage = async () => {
-      try {
-        const response = await apiClient.get('/welcome');
-        setApiMessage(response.data.message);
-      } catch (err) {
-        console.error("Error fetching welcome message:", err);
-        setApiMessage("Error connecting to Laravel API for welcome message.");
-      }
-    };
-    fetchWelcomeMessage();
-  }, []);
+  const [authView, setAuthView] = useState('login');
 
   
   useEffect(() => {
@@ -72,8 +58,6 @@ function App() {
     <div className="App">
       <header className="App-header">
         <h1>Digital Wallet App</h1>
-        <p>Laravel API Status: <strong>{apiMessage}</strong></p>
-
         {user ? (
           <div className="dashboard">
         <h2>Welcome, {user.name}!</h2>
@@ -115,12 +99,27 @@ function App() {
     </div>
 ) : (
           <div className="auth-section">
-            <h2>Authentication</h2>
             {error && <p className="error-message" style={{ color: 'red' }}>{error}</p>}
-            <div>
-                <LoginForm onAuthSuccess={handleAuthSuccess} />
-                <RegisterForm onAuthSuccess={handleAuthSuccess} />
-            </div>
+
+            {authView === 'login' && (
+              <div className="login-view">
+                  <LoginForm onAuthSuccess={handleAuthSuccess} />
+                  <p className="form-toggle-text">
+                      Don't have an account? 
+                      <button onClick={() => setAuthView('register')}>Register here.</button>
+                  </p>
+              </div>
+            )}
+
+            {authView === 'register' && (
+              <div className="register-view"> 
+                  <RegisterForm onAuthSuccess={handleAuthSuccess} />
+                  <p className="form-toggle-text">
+                      Already have an account? 
+                      <button onClick={() => setAuthView('login')}> Login here. </button>
+                  </p>
+              </div>
+            )}
           </div>
         )}
       </header>
