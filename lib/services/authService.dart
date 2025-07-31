@@ -17,6 +17,7 @@ class AuthResult {
 abstract class AuthService {
   Future<AuthResult> signUp({
     required String fullName,
+    required String username,
     required String email,
     required String telephone,
     required String password,
@@ -43,26 +44,37 @@ class AuthServiceImpl implements AuthService {
   @override
   Future<AuthResult> signUp({
     required String fullName,
+    required String username,
     required String email,
     required String telephone,
     required String password,
     required String pin,
   }) async {
     try {
-      // First check if user exists
+      // First check if user exists with same email, username or telephone
       final existingUsers = await _supabase
           .from('users')
           .select()
-          .or('email.eq.${email.toLowerCase()},telephone.eq.$telephone');
+          .or('email.eq.${email.toLowerCase()},telephone.eq.$telephone,username.eq.${username.toLowerCase()}');
 
       if (existingUsers.isNotEmpty) {
         final existingUser = existingUsers.first;
-        return AuthResult(
-          success: false,
-          message: existingUser['email'].toString().toLowerCase() == email.toLowerCase()
-              ? 'This email address is already registered. Please try signing in instead'
-              : 'This phone number is already registered. Please use a different number',
-        );
+        if (existingUser['email'].toString().toLowerCase() == email.toLowerCase()) {
+          return AuthResult(
+            success: false,
+            message: 'This email address is already registered. Please try signing in instead',
+          );
+        } else if (existingUser['telephone'] == telephone) {
+          return AuthResult(
+            success: false,
+            message: 'This phone number is already registered. Please use a different number',
+          );
+        } else if (existingUser['username'].toString().toLowerCase() == username.toLowerCase()) {
+          return AuthResult(
+            success: false,
+            message: 'This username is already taken. Please choose a different one',
+          );
+        }
       }
 
       // Sign up with Supabase Auth
@@ -84,6 +96,7 @@ class AuthServiceImpl implements AuthService {
             .from('users')
             .insert({
               'email': email.toLowerCase(),
+              'username': username.toLowerCase(),
               'full_name': fullName,
               'telephone': telephone,
               'pin_hash': pin,

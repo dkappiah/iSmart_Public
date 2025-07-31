@@ -30,10 +30,8 @@ class CustomBottomNavBar extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           _buildNavItem(Icons.home_rounded, 0, 'Home'),
-          //_buildNavItem(Icons.payment_outlined, 1, 'Pay'),
-          _buildNavItem(Icons.receipt_long_outlined, 2, 'Transactions'),
-          _buildNavItem(Icons.person_2_outlined, 3, 'Profile'),
-          //_buildNavItem(Icons.history_rounded, 4, 'History'),
+          _buildNavItem(Icons.receipt_long_outlined, 1, 'Transactions'), // Changed from 2 to 1
+          _buildNavItem(Icons.person_2_outlined, 2, 'Profile'), // Changed from 3 to 2
         ],
       ),
     );
@@ -43,7 +41,10 @@ class CustomBottomNavBar extends StatelessWidget {
     final isActive = currentIndex == index;
     
     return GestureDetector(
-      onTap: () => onTap(index),
+      onTap: () {
+        print('NavBar: Tapping $label (index $index)'); // Debug print to help you verify
+        onTap(index);
+      },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),

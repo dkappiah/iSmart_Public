@@ -31,11 +31,11 @@ class MyApp extends StatelessWidget {
             theme: themeProvider.lightTheme,
             darkTheme: themeProvider.darkTheme,
             themeMode: themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
-            // initial route to auth page (sign-in by default)
+            // initial route to the authentication page
             initialRoute: '/auth',
             routes: {
-              '/auth': (context) => const AuthPage(isSignIn: true), // Sign-in screen
-              '/home': (context) => const HomePage(),
+              '/auth': (context) => const AuthPage(isSignIn: true), // Sign-in and sign-up page
+              '/home': (context) => const HomePage(), // Home page after login
             },
             // login safety net
             onUnknownRoute: (settings) {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mini_mobile_digital_wallet/widget/navBar.dart';
 import 'package:mini_mobile_digital_wallet/providers/themeProvider.dart';
 import 'package:provider/provider.dart';
+import 'package:mini_mobile_digital_wallet/services/profileService.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({Key? key}) : super(key: key);
@@ -12,6 +13,14 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   int _currentIndex = 3;
+  late Future<Map<String, dynamic>> _profileFuture;
+  final ProfileService _profileService = ProfileService();
+
+  @override
+  void initState() {
+    super.initState();
+    _profileFuture = _profileService.getProfileData();
+  }
 
   void _onNavTap(int index) {
     setState(() {
@@ -32,86 +41,95 @@ class _ProfilePageState extends State<ProfilePage> {
           child: Column(
             children: [
               _buildHeader(),
-              _buildProfileCard(),
-              _buildStatsCard(),
+              FutureBuilder<Map<String, dynamic>>(
+                future: _profileFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return _buildProfileCardPlaceholder();
+                  } else if (snapshot.hasError) {
+                    return _buildErrorCard(snapshot.error.toString());
+                  } else {
+                    return _buildProfileCard(snapshot.data!);
+                  }
+                },
+              ),
               _buildMenuSection(),
               _buildSecuritySection(),
               _buildSupportSection(),
-              const SizedBox(height: 100), // Space for bottom navigation
+              const SizedBox(height: 100),
             ],
           ),
         ),
       ),
-      // bottomNavigationBar: CustomBottomNavBar(
-      //   currentIndex: _currentIndex,
-      //   onTap: _onNavTap,
-      // ),
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildProfileCardPlaceholder() {
     return Container(
-      padding: const EdgeInsets.all(20),
-      child: Row(
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.all(28),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF3B82F6).withOpacity(0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: const Center(child: CircularProgressIndicator(color: Colors.white)),
+    );
+  }
+
+  Widget _buildErrorCard(String error) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.all(28),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFFEF4444), Color(0xFFDC2626)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Column(
         children: [
-          GestureDetector(
-            onTap: () => Navigator.pop(context),
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: context.cardBackgroundColor,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: context.shadowColor,
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Icon(
-                Icons.arrow_back_ios,
-                size: 20,
-                color: context.textSecondaryColor,
-              ),
+          const Icon(Icons.error_outline, color: Colors.white, size: 40),
+          const SizedBox(height: 16),
+          Text(
+            'Failed to load profile',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Text(
-              'Profile',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w700,
-                color: context.textPrimaryColor,
-              ),
+          const SizedBox(height: 8),
+          Text(
+            error,
+            style: TextStyle(
+              color: Colors.white70,
+              fontSize: 14,
             ),
-          ),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: context.cardBackgroundColor,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: context.shadowColor,
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Icon(
-              Icons.edit_outlined,
-              size: 24,
-              color: context.textSecondaryColor,
-            ),
+            textAlign: TextAlign.center,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildProfileCard() {
+  Widget _buildProfileCard(Map<String, dynamic> userData) {
+    final initials = _getInitials(userData['full_name'] ?? '');
+    final email = userData['email'] ?? 'No email';
+    final phone = userData['telephone'] ?? 'No phone number';
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20),
       padding: const EdgeInsets.all(28),
@@ -140,10 +158,10 @@ class _ProfilePageState extends State<ProfilePage> {
               borderRadius: BorderRadius.circular(24),
               border: Border.all(color: Colors.white.withOpacity(0.3), width: 2),
             ),
-            child: const Center(
+            child: Center(
               child: Text(
-                'AP',
-                style: TextStyle(
+                initials,
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 32,
                   fontWeight: FontWeight.w700,
@@ -152,27 +170,27 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
           ),
           const SizedBox(height: 16),
-          const Text(
-            'Autumn Phillips',
-            style: TextStyle(
+          Text(
+            userData['full_name'] ?? 'No name',
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 24,
               fontWeight: FontWeight.w700,
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
-            'autumn.phillips@email.com',
-            style: TextStyle(
+          Text(
+            email,
+            style: const TextStyle(
               color: Colors.white70,
               fontSize: 14,
               fontWeight: FontWeight.w500,
             ),
           ),
           const SizedBox(height: 4),
-          const Text(
-            '+233 24 123 4567',
-            style: TextStyle(
+          Text(
+            phone,
+            style: const TextStyle(
               color: Colors.white70,
               fontSize: 14,
               fontWeight: FontWeight.w500,
@@ -186,111 +204,66 @@ class _ProfilePageState extends State<ProfilePage> {
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: Colors.white.withOpacity(0.3)),
             ),
-            child: const Text(
-              'Premium Member',
-              style: TextStyle(
+            child: Text(
+              '@${userData['username'] ?? 'username'}',
+              style: const TextStyle(
                 color: Colors.white,
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  String _getInitials(String name) {
+    if (name.isEmpty) return '';
+    final parts = name.split(' ');
+    if (parts.length == 1) return parts[0][0].toUpperCase();
+    return '${parts[0][0]}${parts[parts.length - 1][0]}'.toUpperCase();
+  }
+
+  Widget _buildHeader() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: () => Navigator.pop(context),
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: context.cardBackgroundColor,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: context.shadowColor,
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Icon(
+                Icons.arrow_back,
+                color: context.textPrimaryColor,
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Text(
+              'Profile',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.w700,
+                color: context.textPrimaryColor,
               ),
             ),
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildStatsCard() {
-    return Container(
-      margin: const EdgeInsets.all(20),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: context.cardBackgroundColor,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: context.shadowColor,
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: _buildStatItem(
-              'Total Transactions',
-              '1,247',
-              Icons.receipt_long_outlined,
-              const Color(0xFF3B82F6),
-            ),
-          ),
-          Container(
-            width: 1,
-            height: 50,
-            color: context.textSecondaryColor.withOpacity(0.2),
-          ),
-          Expanded(
-            child: _buildStatItem(
-              'Monthly Spending',
-              '₵2,847',
-              Icons.trending_down_outlined,
-              const Color(0xFFEF4444),
-            ),
-          ),
-          Container(
-            width: 1,
-            height: 50,
-            color: context.textSecondaryColor.withOpacity(0.2),
-          ),
-          Expanded(
-            child: _buildStatItem(
-              'Savings',
-              '₵5,623',
-              Icons.savings_outlined,
-              const Color(0xFF10B981),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatItem(String title, String value, IconData icon, Color color) {
-    return Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Icon(
-            icon,
-            color: color,
-            size: 24,
-          ),
-        ),
-        const SizedBox(height: 12),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-            color: context.textPrimaryColor,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          title,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 12,
-            color: context.textSecondaryColor,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ],
     );
   }
 
@@ -314,24 +287,7 @@ class _ProfilePageState extends State<ProfilePage> {
             'Personal Information',
             'Update your personal details',
             const Color(0xFF3B82F6),
-          ),
-          _buildMenuItem(
-            Icons.credit_card_outlined,
-            'Payment Methods',
-            'Manage cards and bank accounts',
-            const Color(0xFF10B981),
-          ),
-          _buildMenuItem(
-            Icons.notifications_outlined,
-            'Notifications',
-            'Manage push notifications',
-            const Color(0xFFF59E0B),
-          ),
-          _buildMenuItem(
-            Icons.language_outlined,
-            'Language & Region',
-            'Change language and currency',
-            const Color(0xFF8B5CF6),
+            onTap: _showPersonalInfoDialog,
           ),
         ],
       ),
@@ -358,24 +314,7 @@ class _ProfilePageState extends State<ProfilePage> {
             'Change PIN',
             'Update your security PIN',
             const Color(0xFFEF4444),
-          ),
-          _buildMenuItem(
-            Icons.fingerprint_outlined,
-            'Biometric Authentication',
-            'Enable fingerprint or face ID',
-            const Color(0xFF059669),
-          ),
-          _buildMenuItem(
-            Icons.security_outlined,
-            'Two-Factor Authentication',
-            'Add extra security to your account',
-            const Color(0xFFDC2626),
-          ),
-          _buildMenuItem(
-            Icons.history_outlined,
-            'Login History',
-            'View recent login activity',
-            const Color(0xFF6B7280),
+            onTap: _showChangePinDialog,
           ),
         ],
       ),
@@ -398,28 +337,11 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
           const SizedBox(height: 16),
           _buildMenuItem(
-            Icons.help_outline,
-            'Help Center',
-            'Find answers to common questions',
-            const Color(0xFF3B82F6),
-          ),
-          _buildMenuItem(
-            Icons.chat_bubble_outline,
-            'Contact Support',
-            'Get help from our support team',
-            const Color(0xFF10B981),
-          ),
-          _buildMenuItem(
-            Icons.star_outline,
-            'Rate App',
-            'Rate our app on the store',
-            const Color(0xFFF59E0B),
-          ),
-          _buildMenuItem(
             Icons.info_outline,
             'About',
             'App version and legal information',
             const Color(0xFF6B7280),
+            onTap: _showAboutDialog,
           ),
           const SizedBox(height: 20),
           _buildLogoutButton(),
@@ -428,14 +350,17 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildMenuItem(IconData icon, String title, String subtitle, Color color) {
+  Widget _buildMenuItem(
+    IconData icon,
+    String title,
+    String subtitle,
+    Color color, {
+    required VoidCallback onTap,
+  }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       child: GestureDetector(
-        onTap: () {
-          // Handle menu item tap
-          print('Tapped: $title');
-        },
+        onTap: onTap,
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -501,9 +426,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Widget _buildLogoutButton() {
     return GestureDetector(
-      onTap: () {
-        _showLogoutDialog();
-      },
+      onTap: _showLogoutDialog,
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.all(16),
@@ -515,7 +438,7 @@ class _ProfilePageState extends State<ProfilePage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
+            const Icon(
               Icons.logout,
               color: Colors.red,
               size: 24,
@@ -532,6 +455,280 @@ class _ProfilePageState extends State<ProfilePage> {
           ],
         ),
       ),
+    );
+  }
+
+  void _showPersonalInfoDialog() async {
+    final userData = await _profileFuture;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: context.cardBackgroundColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Text(
+            'Personal Information',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              color: context.textPrimaryColor,
+            ),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildInfoRow('Full Name', userData['full_name'] ?? 'Not provided'),
+              const SizedBox(height: 12),
+              _buildInfoRow('Email', userData['email'] ?? 'Not provided'),
+              const SizedBox(height: 12),
+              _buildInfoRow('Username', '@${userData['username'] ?? 'username'}'),
+              const SizedBox(height: 12),
+              _buildInfoRow('Phone', userData['telephone'] ?? 'Not provided'),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                'Close',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: context.textSecondaryColor,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildInfoRow(String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            color: context.textSecondaryColor,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 16,
+            color: context.textPrimaryColor,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showChangePinDialog() {
+    final oldPinController = TextEditingController();
+    final newPinController = TextEditingController();
+    final confirmPinController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: context.cardBackgroundColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Text(
+            'Change PIN',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              color: context.textPrimaryColor,
+            ),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: oldPinController,
+                decoration: InputDecoration(
+                  labelText: 'Current PIN',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                obscureText: true,
+                keyboardType: TextInputType.number,
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: newPinController,
+                decoration: InputDecoration(
+                  labelText: 'New PIN',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                obscureText: true,
+                keyboardType: TextInputType.number,
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: confirmPinController,
+                decoration: InputDecoration(
+                  labelText: 'Confirm New PIN',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                obscureText: true,
+                keyboardType: TextInputType.number,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                'Cancel',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: context.textSecondaryColor,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () async {
+                if (newPinController.text != confirmPinController.text) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('New PINs do not match'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                  return;
+                }
+
+                if (newPinController.text.length != 4) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('PIN must be 4 digits'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                  return;
+                }
+
+                try {
+                  await _profileService.changePin(newPinController.text);
+                  if (mounted) {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('PIN changed successfully'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Failed to change PIN: ${e.toString()}'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                }
+              },
+              child: const Text(
+                'Change',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.blue,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showAboutDialog() async {
+    final appInfo = await _profileService.getAppInfo();
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: context.cardBackgroundColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Text(
+            'About',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              color: context.textPrimaryColor,
+            ),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Digital Wallet',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: context.textPrimaryColor,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Version ${appInfo['version']} (${appInfo['buildNumber']})',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: context.textSecondaryColor,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                appInfo['aboutText'],
+                style: TextStyle(
+                  fontSize: 14,
+                  color: context.textSecondaryColor,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                'Close',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: context.textSecondaryColor,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -572,10 +769,21 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
             ),
             TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                // Handle logout logic here
-                print('User logged out');
+              onPressed: () async {
+                // Navigate first before async operations
+                Navigator.pushNamedAndRemoveUntil(
+                  context,
+                  '/auth',
+                  (route) => false,
+                );
+                
+                // Then perform logout in background
+                try {
+                  await _profileService.logout();
+                } catch (e) {
+                  // Errors can be logged but we've already navigated away
+                  debugPrint('Logout error: ${e.toString()}');
+                }
               },
               child: const Text(
                 'Logout',

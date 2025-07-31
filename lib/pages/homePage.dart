@@ -18,16 +18,21 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _currentIndex = 0;
 
-  // List of pages for navigation
+  // List of pages for navigation - ensure only 3 pages
   final List<Widget> _pages = [
-    const _HomeContent(), 
-    const TransactionsPage(),
-    const ProfilePage(),
+    const _HomeContent(),     // index 0 - Home
+    const TransactionsPage(), // index 1 - Transactions  
+    const ProfilePage(),      // index 2 - Profile
   ];
 
   void _onNavTap(int index) {
-    if (_currentIndex == index) return;
+    // Add bounds checking to prevent RangeError
+    if (index < 0 || index >= _pages.length) {
+      print('Invalid navigation index: $index, max allowed: ${_pages.length - 1}');
+      return;
+    }
     
+    print('Navigation: switching from $_currentIndex to $index');
     setState(() {
       _currentIndex = index;
     });
@@ -37,7 +42,10 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: context.backgroundColor,
-      body: _pages[_currentIndex],
+      body: IndexedStack(
+        index: _currentIndex,
+        children: _pages,
+      ),
       bottomNavigationBar: CustomBottomNavBar(
         currentIndex: _currentIndex,
         onTap: _onNavTap,
@@ -56,11 +64,13 @@ class _HomeContent extends StatefulWidget {
 class _HomeContentState extends State<_HomeContent> {
   bool _isBalanceVisible = true;
   bool _isLoading = true;
+  bool _isLoadingTransactions = false;
+  String? _transactionsError;
   
   // User and wallet data
   Map<String, dynamic>? _userData;
   Map<String, dynamic>? _walletData;
-  List<Map<String, dynamic>> _recentTransactions = [];
+  List<Transaction> _recentTransactions = [];
   
   final SupabaseClient _supabase = Supabase.instance.client;
 
@@ -77,11 +87,13 @@ class _HomeContentState extends State<_HomeContent> {
       final user = _supabase.auth.currentUser;
       if (user == null) {
         // Handle unauthenticated user
-        Navigator.of(context).pushReplacementNamed('/login');
+        if (mounted) {
+          Navigator.of(context).pushReplacementNamed('/login');
+        }
         return;
       }
 
-      print('Current user ID: ${user.id}'); // Debug log
+      print('Current user ID: ${user.id}');
 
       // Fetch user data
       final userResponse = await _supabase
@@ -90,10 +102,13 @@ class _HomeContentState extends State<_HomeContent> {
           .eq('auth_user_id', user.id)
           .single();
 
-      print('User response: $userResponse'); // Debug log
+      print('User response: $userResponse');
       
-      _userData = userResponse;
-      print('User full name: ${_userData?['full_name']}'); // Debug log
+      if (mounted) {
+        setState(() {
+          _userData = userResponse;
+        });
+      }
       
       if (_userData != null) {
         // Fetch wallet data
@@ -104,8 +119,12 @@ class _HomeContentState extends State<_HomeContent> {
               .eq('user_id', _userData!['id'])
               .single();
               
-          print('Wallet response: $walletResponse'); // Debug log
-          _walletData = walletResponse;
+          print('Wallet response: $walletResponse');
+          if (mounted) {
+            setState(() {
+              _walletData = walletResponse;
+            });
+          }
         } catch (walletError) {
           print('Wallet error: $walletError');
           // If no wallet exists, create one
@@ -151,7 +170,11 @@ class _HomeContentState extends State<_HomeContent> {
           .select()
           .single();
           
-      _walletData = walletResponse;
+      if (mounted) {
+        setState(() {
+          _walletData = walletResponse;
+        });
+      }
       print('Wallet created successfully: $walletResponse');
     } catch (error) {
       print('Error creating wallet: $error');
@@ -159,23 +182,64 @@ class _HomeContentState extends State<_HomeContent> {
   }
 
   Future<void> _loadRecentTransactions() async {
+    if (!mounted) return;
+    
     try {
+      setState(() {
+        _isLoadingTransactions = true;
+        _transactionsError = null;
+      });
+
+      final user = _supabase.auth.currentUser;
+      if (user == null) {
+        if (mounted) {
+          setState(() {
+            _transactionsError = 'User not authenticated';
+            _isLoadingTransactions = false;
+          });
+        }
+        return;
+      }
+
       final response = await _supabase
           .from('transactions')
-          .select()
-          .eq('wallet_id', _walletData!['id'])
+          .select('''
+            id,
+            user_id,
+            transaction_type,
+            amount,
+            status,
+            description,
+            recipient_email,
+            source_type,
+            created_at,
+            completed_at,
+            metadata
+          ''')
+          .eq('user_id', user.id)
           .order('created_at', ascending: false)
           .limit(3);
-          
-      if (response != null) {
-        _recentTransactions = List<Map<String, dynamic>>.from(response);
+
+      if (response != null && mounted) {
+        final List<Transaction> transactions = (response as List)
+            .map((json) => Transaction.fromSupabaseJson(json))
+            .toList();
+
+        setState(() {
+          _recentTransactions = transactions;
+          _isLoadingTransactions = false;
+        });
       }
     } catch (error) {
-      print('Error loading transactions: $error');
+      print('Error loading recent transactions: $error');
+      if (mounted) {
+        setState(() {
+          _transactionsError = error.toString();
+          _isLoadingTransactions = false;
+        });
+      }
     }
   }
-
-  
 
   void _toggleBalanceVisibility() {
     setState(() {
@@ -200,46 +264,37 @@ class _HomeContentState extends State<_HomeContent> {
     return '$symbol${amount.toStringAsFixed(2)}';
   }
 
-  String _formatTransactionDate(String dateString) {
-    final date = DateTime.parse(dateString);
-    final now = DateTime.now();
-    final difference = now.difference(date).inDays;
-    
-    if (difference == 0) {
-      return 'Today, ${TimeOfDay.fromDateTime(date).format(context)}';
-    } else if (difference == 1) {
-      return 'Yesterday, ${TimeOfDay.fromDateTime(date).format(context)}';
-    } else {
-      return '${date.day}/${date.month}/${date.year}';
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(),
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
       );
     }
 
-    return SafeArea(
-      child: RefreshIndicator(
-        onRefresh: _loadUserData,
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          child: Column(
-            children: [
-              // Header Section
-              _buildHeader(context),
-              
-              // Balance Card
-              _buildBalanceCard(context),
-                          
-              // Recent Transactions
-              _buildRecentTransactions(context),
-              
-              const SizedBox(height: 100), // Space for bottom navigation bar
-            ],
+    return Scaffold(
+      backgroundColor: context.backgroundColor,
+      body: SafeArea(
+        child: RefreshIndicator(
+          onRefresh: _loadUserData,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: Column(
+              children: [
+                // Header Section
+                _buildHeader(context),
+                
+                // Balance Card
+                _buildBalanceCard(context),
+                            
+                // Recent Transactions
+                _buildRecentTransactions(context),
+                
+                const SizedBox(height: 100), // Space for bottom navigation bar
+              ],
+            ),
           ),
         ),
       ),
@@ -394,19 +449,15 @@ class _HomeContentState extends State<_HomeContent> {
           case 'Add Funds':
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => AddMoneyPage()),
+              MaterialPageRoute(builder: (context) => const AddMoneyPage()),
             );
             break;
           case 'Transfer Funds':
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => TransferFundsPage()),
+              MaterialPageRoute(builder: (context) => const TransferFundsPage()),
             );
-            // Add your Send navigation here
             break;
-          // case 'Pay Bills':
-          //   // Add your Pay Bills navigation here
-          //   break;
         }
       },
       child: Column(
@@ -438,8 +489,6 @@ class _HomeContentState extends State<_HomeContent> {
     );
   }
 
-
-
   Widget _buildRecentTransactions(BuildContext context) {
     return Container(
       margin: const EdgeInsets.all(20),
@@ -456,160 +505,327 @@ class _HomeContentState extends State<_HomeContent> {
                   fontWeight: FontWeight.w700,
                   color: context.textPrimaryColor,
                 ),
-              )
+              ),
             ],
           ),
           const SizedBox(height: 16),
-          if (_recentTransactions.isEmpty)
+          
+          // Loading state
+          if (_isLoadingTransactions)
             const Center(
-              child: Text('No recent transactions'),
-            )
-          else
-            ..._recentTransactions.map((transaction) {
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: _buildTransactionItem(
-                  context,
-                  _getTransactionInitial(transaction['title']),
-                  transaction['title'] ?? 'Unknown',
-                  transaction['category'] ?? 'General',
-                  _formatTransactionDate(transaction['created_at']),
-                  _formatAmount(transaction['amount']?.toDouble() ?? 0.0),
-                  _getTransactionColor(transaction['type']),
-                  transaction['is_recurring'] ?? false,
-                ),
-              );
-            }).toList(),
-        ],
-      ),
-    );
-  }
-
-  String _getTransactionInitial(String? title) {
-    if (title == null || title.isEmpty) return 'T';
-    return title[0].toUpperCase();
-  }
-
-  Color _getTransactionColor(String? type) {
-    switch (type) {
-      case 'income':
-        return const Color(0xFF059669);
-      case 'expense':
-        return const Color(0xFF10B981);
-      case 'transfer':
-        return const Color(0xFF3B82F6);
-      default:
-        return const Color(0xFF6B7280);
-    }
-  }
-
-  Widget _buildTransactionItem(
-    BuildContext context,
-    String initial,
-    String title,
-    String subtitle,
-    String date,
-    String amount,
-    Color color,
-    bool isSubscription,
-  ) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: context.cardBackgroundColor,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: context.shadowColor,
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Center(
-              child: Text(
-                initial,
-                style: TextStyle(
-                  color: color,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
+              child: Padding(
+                padding: EdgeInsets.all(20),
+                child: CircularProgressIndicator(),
               ),
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Text(
-                      title,
+            )
+          
+          // Error state
+          else if (_transactionsError != null)
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.red.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.error_outline,
+                    color: Colors.red,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Failed to load transactions',
                       style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: context.textPrimaryColor,
+                        color: Colors.red,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
-                    if (isSubscription) ...[
-                      const SizedBox(width: 8),
+                  ),
+                ],
+              ),
+            )
+          
+          // Empty state
+          else if (_recentTransactions.isEmpty)
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: context.cardBackgroundColor,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: context.shadowColor,
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  Icon(
+                    Icons.receipt_long_outlined,
+                    size: 48,
+                    color: context.textSecondaryColor.withOpacity(0.5),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'No recent transactions',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: context.textSecondaryColor,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Your transaction history will appear here',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: context.textTertiaryColor,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            )
+          
+          // Transactions list
+          else
+            Column(
+              children: _recentTransactions.map((transaction) {
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: context.cardBackgroundColor,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: context.shadowColor,
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      // Transaction Icon
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        width: 44,
+                        height: 44,
                         decoration: BoxDecoration(
-                          color: Colors.orange.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
+                          color: transaction.color.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                        child: const Text(
-                          'Recurring',
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: Colors.orange,
-                            fontWeight: FontWeight.w500,
+                        child: Center(
+                          child: Icon(
+                            transaction.iconData,
+                            color: transaction.color,
+                            size: 20,
                           ),
                         ),
                       ),
+                      const SizedBox(width: 16),
+                      
+                      // Transaction Details
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    transaction.title,
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      color: context.textPrimaryColor,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                _buildCompactStatusBadge(transaction.status),
+                              ],
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              transaction.subtitle,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: context.textSecondaryColor,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                            ),
+                          ],
+                        ),
+                      ),
+                      
+                      const SizedBox(width: 12),
+                      
+                      // Amount and Date
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            '${transaction.type == TransactionType.add ? '+' : ''}₵${transaction.amount.toStringAsFixed(2)}',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: transaction.type == TransactionType.add 
+                                  ? Colors.green 
+                                  : Colors.blue,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            _formatCompactDate(transaction.date),
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: context.textTertiaryColor,
+                            ),
+                          ),
+                        ],
+                      ),
                     ],
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  subtitle,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: context.textSecondaryColor,
                   ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  date,
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: context.textTertiaryColor,
-                  ),
-                ),
-              ],
+                );
+              }).toList(),
             ),
-          ),
-          Text(
-            amount,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: amount.startsWith('-') ? Colors.red : Colors.green,
-            ),
-          ),
         ],
       ),
     );
   }
+
+  // Helper method for compact status badge
+  Widget _buildCompactStatusBadge(TransactionStatus status) {
+    if (status == TransactionStatus.completed) {
+      return Container(
+        width: 8,
+        height: 8,
+        decoration: BoxDecoration(
+          color: Colors.green,
+          borderRadius: BorderRadius.circular(4),
+        ),
+      );
+    } else {
+      return Container(
+        width: 8,
+        height: 8,
+        decoration: BoxDecoration(
+          color: Colors.red,
+          borderRadius: BorderRadius.circular(4),
+        ),
+      );
+    }
+  }
+
+  // Helper method for compact date formatting
+  String _formatCompactDate(DateTime date) {
+    final now = DateTime.now();
+    final difference = now.difference(date).inDays;
+    
+    if (difference == 0) {
+      return 'Today';
+    } else if (difference == 1) {
+      return 'Yesterday';
+    } else if (difference < 7) {
+      return '${difference}d ago';
+    } else {
+      return '${date.day}/${date.month}';
+    }
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+}
+
+// Transaction Model and Enums
+class Transaction {
+  final String id;
+  final String title;
+  final String subtitle;
+  final double amount;
+  final DateTime date;
+  final TransactionType type;
+  final TransactionStatus status;
+  final IconData iconData;
+  final Color color;
+  final String? recipientEmail;
+  final String? sourceType;
+
+  Transaction({
+    required this.id,
+    required this.title,
+    required this.subtitle,
+    required this.amount,
+    required this.date,
+    required this.type,
+    required this.status,
+    required this.iconData,
+    required this.color,
+    this.recipientEmail,
+    this.sourceType,
+  });
+
+  factory Transaction.fromSupabaseJson(Map<String, dynamic> json) {
+    final transactionType = json['transaction_type'] == 'add' 
+        ? TransactionType.add 
+        : TransactionType.transfer;
+    
+    final status = json['status'] == 'completed' 
+        ? TransactionStatus.completed 
+        : TransactionStatus.failed;
+
+    // Determine icon and color based on type
+    IconData iconData;
+    Color color;
+    String title;
+    String subtitle;
+
+    if (transactionType == TransactionType.add) {
+      iconData = Icons.add_circle;
+      color = Colors.green;
+      title = 'Money Added';
+      subtitle = json['source_type'] ?? 'External Source';
+    } else {
+      iconData = Icons.send;
+      color = Colors.blue;
+      title = 'Transfer Sent';
+      subtitle = json['recipient_email'] ?? 'Unknown Recipient';
+    }
+
+    return Transaction(
+      id: json['id'],
+      title: json['description'] ?? title,
+      subtitle: subtitle,
+      amount: double.parse(json['amount'].toString()),
+      date: DateTime.parse(json['created_at']),
+      type: transactionType,
+      status: status,
+      iconData: iconData,
+      color: color,
+      recipientEmail: json['recipient_email'],
+      sourceType: json['source_type'],
+    );
+  }
+}
+
+enum TransactionType {
+  add,
+  transfer,
+}
+
+enum TransactionStatus {
+  completed,
+  failed,
 }

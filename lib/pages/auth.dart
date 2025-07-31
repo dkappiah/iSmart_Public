@@ -21,6 +21,7 @@ class _AuthPageState extends State<AuthPage> {
 
   // Sign-up specific controllers and variables
   final _nameController = TextEditingController();
+  final _usernameController = TextEditingController();
   final _telephoneController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _pinController = TextEditingController();
@@ -36,6 +37,7 @@ class _AuthPageState extends State<AuthPage> {
     _emailController.dispose();
     _passwordController.dispose();
     _nameController.dispose();
+    _usernameController.dispose();
     _telephoneController.dispose();
     _confirmPasswordController.dispose();
     _pinController.dispose();
@@ -271,12 +273,14 @@ class _AuthPageState extends State<AuthPage> {
             onPressed: _isLoading
                 ? null
                 : () {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => AuthPage(isSignIn: isSignIn),
-                      ),
-                    );
+                    if (mounted) {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => AuthPage(isSignIn: isSignIn),
+                        ),
+                      );
+                    }
                   },
             style: TextButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -444,12 +448,14 @@ class _AuthPageState extends State<AuthPage> {
         GestureDetector(
           onTap: () {
             // Replace pop with pushReplacement
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const AuthPage(isSignIn: true),
-              ),
-            );
+            if (mounted) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AuthPage(isSignIn: true),
+                ),
+              );
+            }
           },
           child: Container(
             padding: const EdgeInsets.all(12),
@@ -493,6 +499,30 @@ class _AuthPageState extends State<AuthPage> {
             }
             if (value.length < 2) {
               return 'Name must be at least 2 characters';
+            }
+            return null;
+          },
+        ),
+        const SizedBox(height: 24),
+        _buildTextField(
+          controller: _usernameController,
+          label: 'Username',
+          hintText: 'Choose a unique username',
+          keyboardType: TextInputType.text,
+          prefixIcon: Icons.alternate_email_outlined,
+          inputFormatters: [
+            FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9_]')),
+            LengthLimitingTextInputFormatter(20),
+          ],
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Please enter a username';
+            }
+            if (value.length < 3) {
+              return 'Username must be at least 3 characters';
+            }
+            if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(value)) {
+              return 'Username can only contain letters, numbers, and underscores';
             }
             return null;
           },
@@ -561,8 +591,8 @@ class _AuthPageState extends State<AuthPage> {
             if (value == null || value.isEmpty) {
               return 'Please enter your password';
             }
-            if (value.length < 8) {
-              return 'Password must be at least 8 characters';
+            if (value.length < 4) {
+              return 'Password must be at least 4 characters';
             }
             if (!RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)').hasMatch(value)) {
               return 'Password must contain uppercase, lowercase, and number';
@@ -603,20 +633,20 @@ class _AuthPageState extends State<AuthPage> {
         _buildTextField(
           controller: _pinController,
           label: 'PIN',
-          hintText: 'Enter 8-digit PIN',
+          hintText: 'Enter 4-digit PIN',
           obscureText: true,
           keyboardType: TextInputType.number,
           prefixIcon: Icons.pin_outlined,
           inputFormatters: [
             FilteringTextInputFormatter.digitsOnly,
-            LengthLimitingTextInputFormatter(8),
+            LengthLimitingTextInputFormatter(4),
           ],
           validator: (value) {
             if (value == null || value.isEmpty) {
               return 'Please enter your PIN';
             }
-            if (value.length != 8) {
-              return 'PIN must be exactly 8 digits';
+            if (value.length != 4) {
+              return 'PIN must be exactly 4 digits';
             }
             return null;
           },
@@ -701,7 +731,9 @@ class _AuthPageState extends State<AuthPage> {
       );
 
       if (result.success) {
-        Navigator.pushReplacementNamed(context, '/home');
+        if (mounted) {
+          Navigator.pushReplacementNamed(context, '/home');
+        }
       } else {
         String errorMessage = result.message ?? 'Unable to sign in';
         // Convert technical error messages to user-friendly ones
@@ -751,6 +783,8 @@ class _AuthPageState extends State<AuthPage> {
         telephone: _telephoneController.text.trim(),
         password: _passwordController.text,
         pin: _pinController.text,
+        // TS: Add username parameter to AuthService.signUp method
+        username: _usernameController.text.trim(),
       );
 
       if (result.success) {
@@ -773,6 +807,9 @@ class _AuthPageState extends State<AuthPage> {
         switch (errorMessage.toLowerCase()) {
           case 'email already exists':
             errorMessage = 'An account with this email already exists';
+            break;
+          case 'username already exists':
+            errorMessage = 'This username is already taken. Please choose another one';
             break;
           case 'telephone already exists':
             errorMessage = 'An account with this phone number already exists';
@@ -851,12 +888,14 @@ class _AuthPageState extends State<AuthPage> {
                 label: 'Sign In',
                 textColor: Colors.white,
                 onPressed: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const AuthPage(isSignIn: true),
-                    ),
-                  );
+                  if (mounted) {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const AuthPage(isSignIn: true),
+                      ),
+                    );
+                  }
                 },
               )
             : null,
