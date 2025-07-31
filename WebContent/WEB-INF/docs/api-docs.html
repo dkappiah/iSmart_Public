@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Mini Wallet API Docs</title>
+</head>
+<body>
+    <h1>Mini Digital Wallet – API Endpoints</h1>
+
+    <h2>Authentication</h2>
+    <ul>
+        <li><strong>POST</strong> <code>/LoginServlet</code><br>Params: username/email, password</li>
+        <li><strong>POST</strong> <code>/RegisterServlet</code><br>Params: username, email, password</li>
+        <li><strong>GET</strong> <code>/LogoutServlet</code></li>
+    </ul>
+
+    <h2>Wallet Operations</h2>
+    <ul>
+        <li><strong>POST</strong> <code>/AddFundsServlet</code><br>Params: amount</li>
+        <li><strong>POST</strong> <code>/TransferServlet</code><br>Params: recipient (email or username), amount</li>
+        <li><strong>GET</strong> <code>/DashboardServlet</code><br>Displays current balance</li>
+        <li><strong>GET</strong> <code>pages/history.jsp</code><br>Shows transaction history</li>
+    </ul>
+
+    <h2>Responses</h2>
+    <p>All servlets redirect or forward to appropriate JSPs. Simulated emails are logged to the console.</p>
+
+</body>
+</html>

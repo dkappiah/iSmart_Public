@@ -1,0 +1,12 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "shell",
+      "label": "Build Java Project",
+      "command": "ant clean compile",
+      "group": "build",
+      "problemMatcher": ["$javac"]
+    }
+  ]
+}
