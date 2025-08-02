@@ -18,7 +18,7 @@ class _TransferFundsPageState extends State<TransferFundsPage>
   final TextEditingController _recipientController = TextEditingController();
   final TextEditingController _noteController = TextEditingController();
   final TextEditingController _pinController = TextEditingController();
-  final TransferService _transferService = TransferService();
+  final TransferService _transferService = TransferService(client: Supabase.instance.client);
   
   bool _isLoading = false;
   bool _isTransferring = false;
@@ -26,6 +26,7 @@ class _TransferFundsPageState extends State<TransferFundsPage>
   bool _isPinFocused = false;
   int _pinAttempts = 0;
   bool _isAccountLocked = false;
+  DateTime? _lockoutStartTime;
   
   Map<String, dynamic>? _userData;
   Map<String, dynamic>? _walletData;
@@ -36,6 +37,8 @@ class _TransferFundsPageState extends State<TransferFundsPage>
   late Animation<double> _pulseAnimation;
   
   final List<double> _quickAmounts = [10.0, 25.0, 50.0, 100.0, 200.0, 500.0];
+  final int _maxPinAttempts = 3;
+  final Duration _lockoutDuration = const Duration(minutes: 5);
 
   @override
   void initState() {
@@ -58,6 +61,22 @@ class _TransferFundsPageState extends State<TransferFundsPage>
     _pulseAnimation = Tween<double>(begin: 1.0, end: 1.05).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
+
+    // Check lockout status periodically
+    _checkLockoutStatus();
+  }
+
+  void _checkLockoutStatus() {
+    if (_isAccountLocked && _lockoutStartTime != null) {
+      final elapsed = DateTime.now().difference(_lockoutStartTime!);
+      if (elapsed >= _lockoutDuration) {
+        setState(() {
+          _isAccountLocked = false;
+          _pinAttempts = 0;
+          _lockoutStartTime = null;
+        });
+      }
+    }
   }
 
   Future<void> _loadUserData() async {
@@ -90,8 +109,15 @@ class _TransferFundsPageState extends State<TransferFundsPage>
 
   Future<void> _processTransfer() async {
     // Check if account is locked
+    _checkLockoutStatus();
     if (_isAccountLocked) {
-      _showSnackBar('Account locked due to multiple failed PIN attempts. Please try again later.', Colors.red);
+      final remainingTime = _lockoutDuration - DateTime.now().difference(_lockoutStartTime!);
+      final minutes = remainingTime.inMinutes;
+      final seconds = remainingTime.inSeconds % 60;
+      _showSnackBar(
+        'Account locked. Try again in ${minutes}m ${seconds}s', 
+        Colors.red
+      );
       return;
     }
 
@@ -137,7 +163,7 @@ class _TransferFundsPageState extends State<TransferFundsPage>
       return;
     }
 
-    if (pin.length != 4) {
+    if (pin.length != 4 || !RegExp(r'^\d{4}$').hasMatch(pin)) {
       _showSnackBar('PIN must be exactly 4 digits', Colors.red);
       _shakePinField();
       return;
@@ -152,27 +178,28 @@ class _TransferFundsPageState extends State<TransferFundsPage>
         return;
       }
 
-      // First verify PIN (you'll need to implement PIN verification in your TransferService)
+      // Verify PIN
       final pinValid = await _transferService.verifyTransactionPin(user.id, pin);
       
       if (!pinValid) {
         _pinAttempts++;
         _shakePinField();
         
-        if (_pinAttempts >= 3) {
-          setState(() => _isAccountLocked = true);
-          _showSnackBar('Too many failed PIN attempts. Account locked for security.', Colors.red);
-          // Implement actual lockout mechanism - this is just a demo
-          Future.delayed(const Duration(minutes: 5), () {
-            if (mounted) {
-              setState(() {
-                _isAccountLocked = false;
-                _pinAttempts = 0;
-              });
-            }
+        if (_pinAttempts >= _maxPinAttempts) {
+          setState(() {
+            _isAccountLocked = true;
+            _lockoutStartTime = DateTime.now();
           });
+          _showSnackBar(
+            'Too many failed PIN attempts. Account locked for ${_lockoutDuration.inMinutes} minutes.', 
+            Colors.red
+          );
         } else {
-          _showSnackBar('Incorrect PIN. ${3 - _pinAttempts} attempts remaining.', Colors.red);
+          final remaining = _maxPinAttempts - _pinAttempts;
+          _showSnackBar(
+            'Incorrect PIN. $remaining attempt${remaining != 1 ? 's' : ''} remaining.', 
+            Colors.red
+          );
         }
         
         _pinController.clear();
@@ -181,8 +208,9 @@ class _TransferFundsPageState extends State<TransferFundsPage>
       }
 
       // Reset PIN attempts on successful verification
-      _pinAttempts = 0;
+      setState(() => _pinAttempts = 0);
 
+      // Process transfer
       final result = await _transferService.processTransfer(
         recipientIdentifier: recipientInput,
         amount: amount,
@@ -191,8 +219,12 @@ class _TransferFundsPageState extends State<TransferFundsPage>
       );
 
       if (result['success']) {
-        // Show success message
-        _showSnackBar(result['message'], Colors.green);
+        // Show success message with reference number
+        final refNumber = result['reference_number'] ?? '';
+        _showSnackBar(
+          '${result['message']}\nRef: $refNumber', 
+          Colors.green
+        );
 
         // Refresh user data to get updated balance
         await _loadUserData();
@@ -233,7 +265,7 @@ class _TransferFundsPageState extends State<TransferFundsPage>
           backgroundColor: color,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          duration: const Duration(seconds: 4),
+          duration: Duration(seconds: color == Colors.green ? 6 : 4),
         ),
       );
     }
@@ -245,6 +277,29 @@ class _TransferFundsPageState extends State<TransferFundsPage>
 
   String _formatAmount(double amount) {
     return '₵${amount.toStringAsFixed(2)}';
+  }
+
+  String _getRemainingLockoutTime() {
+    if (!_isAccountLocked || _lockoutStartTime == null) return '';
+    
+    final elapsed = DateTime.now().difference(_lockoutStartTime!);
+    final remaining = _lockoutDuration - elapsed;
+    
+    if (remaining.isNegative) {
+      // Lockout expired, update state
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        setState(() {
+          _isAccountLocked = false;
+          _pinAttempts = 0;
+          _lockoutStartTime = null;
+        });
+      });
+      return '';
+    }
+    
+    final minutes = remaining.inMinutes;
+    final seconds = remaining.inSeconds % 60;
+    return '${minutes}m ${seconds}s';
   }
 
   @override
@@ -308,6 +363,7 @@ class _TransferFundsPageState extends State<TransferFundsPage>
     );
   }
 
+  // ... (Keep all the existing build methods unchanged)
   Widget _buildCurrentBalanceCard(BuildContext context) {
     final balance = (_walletData?['balance'] ?? 0).toDouble();
     
@@ -610,9 +666,9 @@ class _TransferFundsPageState extends State<TransferFundsPage>
                   color: Colors.red.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Text(
-                  'LOCKED',
-                  style: TextStyle(
+                child: Text(
+                  'LOCKED ${_getRemainingLockoutTime()}',
+                  style: const TextStyle(
                     color: Colors.red,
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
@@ -706,7 +762,7 @@ class _TransferFundsPageState extends State<TransferFundsPage>
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                     child: Text(
-                                      '${3 - _pinAttempts}',
+                                      '${_maxPinAttempts - _pinAttempts}',
                                       style: const TextStyle(
                                         color: Colors.orange,
                                         fontSize: 10,
@@ -767,7 +823,7 @@ class _TransferFundsPageState extends State<TransferFundsPage>
               Expanded(
                 child: Text(
                   _isAccountLocked
-                      ? 'Account locked. Too many failed attempts.'
+                      ? 'Account locked due to multiple failed PIN attempts'
                       : 'Enter your 4-digit transaction PIN to authorize transfer',
                   style: TextStyle(
                     color: _isAccountLocked
@@ -810,7 +866,9 @@ class _TransferFundsPageState extends State<TransferFundsPage>
                 ),
               )
             : Text(
-                _isAccountLocked ? 'Account Locked' : 'Send Money',
+                _isAccountLocked 
+                    ? 'Account Locked (${_getRemainingLockoutTime()})' 
+                    : 'Send Money',
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 18,

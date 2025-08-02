@@ -777,11 +777,11 @@ class _ProfilePageState extends State<ProfilePage> {
                   (route) => false,
                 );
                 
-                // Then perform logout in background
+                // Performing a logout in background
                 try {
                   await _profileService.logout();
                 } catch (e) {
-                  // Errors can be logged but we've already navigated away
+                  // Errors can be logged 
                   debugPrint('Logout error: ${e.toString()}');
                 }
               },

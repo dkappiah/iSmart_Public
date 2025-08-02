@@ -35,7 +35,7 @@ class MyApp extends StatelessWidget {
             initialRoute: '/auth',
             routes: {
               '/auth': (context) => const AuthPage(isSignIn: true), // Sign-in and sign-up page
-              '/home': (context) => const HomePage(), // Home page after login
+              '/home': (context) => const HomePage(), // Home page after sucessful login
             },
             // login safety net
             onUnknownRoute: (settings) {
