@@ -88,7 +88,7 @@ class WalletController extends Controller
                 'user_id' => $sender->id,
                 'type' => 'debit',
                 'amount' => $amount,
-                'description' => 'Funds sent to ' . $recipient -> name . '(' . $recipient -> email . ')',
+                'description' => 'Funds sent to ' . $recipient -> name . ' (' . $recipient -> email . ')',
                 'related_user_id' => $recipient -> id
             ]);
 
