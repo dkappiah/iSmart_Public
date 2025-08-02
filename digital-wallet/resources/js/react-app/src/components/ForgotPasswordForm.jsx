@@ -25,7 +25,7 @@ function ForgotPasswordForm({ onBackToLogin }) {
 
     return (
         <div>
-            <form onSubmit={handleSubmit} classname="auth-form">
+            <form onSubmit={handleSubmit} className="auth-form">
                 <h3>Forgot Password?</h3>
                 <p>Enter your email to receive a password reset link.</p>
                     <div>

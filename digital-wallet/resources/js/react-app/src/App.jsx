@@ -105,8 +105,13 @@ function App() {
             {authView === 'login' && (
               <div className="login-view">
                   <LoginForm onAuthSuccess={handleAuthSuccess} onForgotPassword={() => setAuthView('forgot-password')} />
+                  <p className="form-toggle-text"> Forgot password? &nbsp;
+                    <button type="button" onClick={() => setAuthView('forgot-password')} className="inline-link-button">
+                        Click here!
+                    </button>
+                  </p>
                   <p className="form-toggle-text">
-                      Don't have an account? 
+                      Don't have an account? &nbsp;
                       <button onClick={() => setAuthView('register')}>Register here.</button>
                   </p>
               </div>

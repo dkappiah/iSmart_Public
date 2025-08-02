@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import apiClient, { getCsrfToken } from '../api'; 
 
-function LoginForm({ onAuthSuccess, onForgotPassword }) {
+function LoginForm({ onAuthSuccess}) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
@@ -52,11 +52,6 @@ function LoginForm({ onAuthSuccess, onForgotPassword }) {
         <button type="submit" disabled={loading}>
           {loading ? 'Logging in...' : 'Login'}
         </button>
-        <p>
-            <button type="button" onClick={onForgotPassword} className="forgot-password-button">
-              Forgot Password?
-            </button>
-        </p>
       </form>
 
    
