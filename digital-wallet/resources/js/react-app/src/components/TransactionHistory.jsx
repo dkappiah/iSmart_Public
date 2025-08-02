@@ -61,9 +61,9 @@ function TransactionHistory() {
                 <td>{transaction.type}</td>
                 <td>{transaction.description}</td>
                 <td
-                  className={transaction.type.includes('transfer sent') ? 'amount-sent' : 'amount-received'}
+                  className={transaction.type.includes('debit') ? 'amount-sent' : 'amount-received'}
                 >
-                  {transaction.type.includes('transfer sent') ? '-' : '+'}$
+                  {transaction.type.includes('debit') ? '-' : '+'}$
                   {parseFloat(transaction.amount).toFixed(2)}
                 </td>
               </tr>

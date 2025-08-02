@@ -86,7 +86,7 @@ class WalletController extends Controller
 
             Transaction::create([
                 'user_id' => $sender->id,
-                'type' => 'transfer_sent',
+                'type' => 'debit',
                 'amount' => $amount,
                 'description' => 'Funds sent to ' . $recipient -> name . '(' . $recipient -> email . ')',
                 'related_user_id' => $recipient -> id
@@ -94,7 +94,7 @@ class WalletController extends Controller
 
             Transaction::create([
                 'user_id' => $recipient->id,
-                'type' => 'transfer_received',
+                'type' => 'credit',
                 'amount' => $amount,
                 'description' => 'Funds received from ' . $sender->name . ' (' . $sender->email . ')',
                 'related_user_id' => $sender->id,
@@ -120,7 +120,7 @@ class WalletController extends Controller
             $description = $transaction -> description;
             $relatedUser = null;
 
-            if (in_array($transaction -> type, ['transfer_sent', 'transfer_received'])){
+            if (in_array($transaction -> type, ['debit', 'credit'])){
                 if($transaction -> related_user_id){
                     $relatedUser = User::find($transaction->related_user_id);
                 }
