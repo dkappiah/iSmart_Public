@@ -4,7 +4,7 @@ A sleek and secure digital wallet mobile application built with **Flutter**.
 
 ## Overview
 
-**Mini Mobile Digital Wallet** allows users to manage digital finances seamlessly from their smartphones. The app offers features like wallet creation, transaction history, balance tracking, and future support for virtual cards and payments.
+**Mini Mobile Digital Wallet** allows users to manage digital finances seamlessly from their smartphones. The app offers features like wallet creation, transaction history and balance tracking.
 
 This project is currently in development and serves as a modern starting point for building a robust fintech mobile application using Flutter.
 
@@ -26,7 +26,7 @@ This project is currently in development and serves as a modern starting point f
 
 ## Getting Started
 
-Git clone this repo
-navigate to "build\app\outputs\flutter-apk\app-release.apk" for the apk build
-navigate to "build\windows\x64\runner\Release\mini_mobile_digital_wallet.exe" for .exe build
-navigate to "build\web" for web build
+- Git clone this repo
+- navigate to "build\app\outputs\flutter-apk\app-release.apk" for the apk build
+- navigate to "build\windows\x64\runner\Release\mini_mobile_digital_wallet.exe" for .exe build
+- navigate to "build\web" for web build
