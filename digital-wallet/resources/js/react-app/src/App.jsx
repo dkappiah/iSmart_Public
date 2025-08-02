@@ -3,6 +3,7 @@ import apiClient, { getCsrfToken } from './api';
 import './css/App.css'; 
 import RegisterForm from './components/RegisterForm';
 import LoginForm from './components/LoginForm';
+import ForgotPasswordForm from './components/ForgotPasswordForm';
 import DepositForm from './components/DepositForm';
 import TransferForm from './components/TransferForm';
 import TransactionHistory from './components/TransactionHistory';
@@ -103,7 +104,7 @@ function App() {
 
             {authView === 'login' && (
               <div className="login-view">
-                  <LoginForm onAuthSuccess={handleAuthSuccess} />
+                  <LoginForm onAuthSuccess={handleAuthSuccess} onForgotPassword={() => setAuthView('forgot-password')} />
                   <p className="form-toggle-text">
                       Don't have an account? 
                       <button onClick={() => setAuthView('register')}>Register here.</button>
@@ -119,6 +120,10 @@ function App() {
                       <button onClick={() => setAuthView('login')}> Login here. </button>
                   </p>
               </div>
+            )}
+
+            {authView === 'forgot-password' && (
+              <ForgotPasswordForm onBackToLogin={() => setAuthView('login')} />
             )}
           </div>
         )}

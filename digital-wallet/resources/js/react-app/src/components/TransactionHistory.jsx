@@ -40,7 +40,6 @@ function TransactionHistory() {
 
   return (
     <div className="history-section">
-      <h2>Transaction History</h2>
       {transactions.length === 0 ? (
         <p>No transactions found yet.</p>
       ) : (
@@ -51,7 +50,7 @@ function TransactionHistory() {
               <th>Time</th>
               <th>Type</th>
               <th>Description</th>
-              <th style={{ textAlign: 'right' }}>Amount</th>
+              <th>Amount</th>
             </tr>
           </thead>
           <tbody>

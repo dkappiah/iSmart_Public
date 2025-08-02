@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import apiClient, { getCsrfToken } from '../api'; 
 
-function LoginForm({ onAuthSuccess }) {
+function LoginForm({ onAuthSuccess, onForgotPassword }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
@@ -37,21 +37,29 @@ function LoginForm({ onAuthSuccess }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="auth-form">
-      <h2>Login</h2>
-      {error && <p className="error-message" style={{ color: 'red', whiteSpace: 'pre-line' }}>{error}</p>}
-      <div>
-        <label>Email:</label>
-        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-      </div>
-      <div>
-        <label>Password:</label>
-        <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-      </div>
-      <button type="submit" disabled={loading}>
-        {loading ? 'Logging in...' : 'Login'}
-      </button>
-    </form>
+  
+      <form onSubmit={handleSubmit} className="auth-form">
+        <h2>Login</h2>
+        {error && <p className="error-message" style={{ color: 'red', whiteSpace: 'pre-line' }}>{error}</p>}
+        <div>
+          <label>Email:</label>
+          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+        </div>
+        <div>
+          <label>Password:</label>
+          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+        </div>
+        <button type="submit" disabled={loading}>
+          {loading ? 'Logging in...' : 'Login'}
+        </button>
+        <p>
+            <button type="button" onClick={onForgotPassword} className="forgot-password-button">
+              Forgot Password?
+            </button>
+        </p>
+      </form>
+
+   
   );
 }
 
