@@ -123,5 +123,3 @@ This project uses:
 - [Font Awesome](https://fontawesome.com/)
 
 ---
-MIT License.  
-Feel free to use, modify, or extend for educational or personal purposes.
