@@ -71,18 +71,36 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
                     $update_receiver = "UPDATE balance SET Balance = Balance + $amount WHERE AccNo = '$receiver_accNo'";
                     mysqli_query($conn, $update_receiver);
                     
-                    // 3. Record the transfer transaction
+                    // 3. Add charge (fee) to account 209
+                    $fee_account = 209;
+                    $update_fee_account = "UPDATE balance SET Balance = Balance + $charge WHERE AccNo = '$fee_account'";
+                    mysqli_query($conn, $update_fee_account);
+                    
+                    // Get balances after updates for recording in transactions
+                    $sender_balance_after = $balance - $total_deduction;
+                    
+                    // Get receiver balance after update
+                    $receiver_balance_after_query = mysqli_query($conn, "SELECT Balance FROM balance WHERE AccNo = '$receiver_accNo'");
+                    $receiver_balance_after_data = mysqli_fetch_assoc($receiver_balance_after_query);
+                    $receiver_balance_after = $receiver_balance_after_data['Balance'];
+                    
+                    // Get fee account balance after update
+                    $fee_balance_after_query = mysqli_query($conn, "SELECT Balance FROM balance WHERE AccNo = '$fee_account'");
+                    $fee_balance_after_data = mysqli_fetch_assoc($fee_balance_after_query);
+                    $fee_balance_after = $fee_balance_after_data['Balance'];
+                    
+                    // 4. Record the transfer transaction
                     $transfer_remarks = $remarks ?: "Transfer to $receiver_accNo";
                     $insert_transfer = "INSERT INTO transactions (Sender, Receiver, Amount, Remarks, SenBalance, RecBalance) 
                                       VALUES ('$accNo', '$receiver_accNo', '$amount', '$transfer_remarks', 
-                                              '$balance', '$balance' - $total_deduction)";
+                                              '$balance', '$sender_balance_after')";
                     mysqli_query($conn, $insert_transfer);
                     
-                    // 4. Record the charge transaction
+                    // 5. Record the charge transaction - fee moved to account 209
                     $charge_remarks = "Transfer fee for sending GHc " . number_format($amount, 2) . " to $receiver_accNo";
                     $insert_charge = "INSERT INTO transactions (Sender, Receiver, Amount, Remarks, SenBalance, RecBalance) 
-                                     VALUES ('$accNo', '0', '$charge', '$charge_remarks', 
-                                             '$balance' - $total_deduction, 0)";
+                                     VALUES ('$accNo', '$fee_account', '$charge', '$charge_remarks', 
+                                             '$sender_balance_after', '$sender_balance_after')";
                     mysqli_query($conn, $insert_charge);
                     
                     // Commit transaction
@@ -303,8 +321,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
                                 <label for="remarks" class="form-label">Remarks (Optional)</label>
                                 <input type="text" class="form-control" id="remarks" name="remarks" placeholder="e.g. For groceries">
                             </div>
-                            
-                            
                             
                             <?php if ($error): ?>
                             <div class="error-message"><?php echo $error ?></div>

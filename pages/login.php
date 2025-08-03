@@ -23,7 +23,7 @@ if (isset($_GET['msg'])) {
 </head>
 
 <body>
-  <!-- Header -->
+
   <header>
     <nav class="navbar">
       <div class="logo">
@@ -37,14 +37,14 @@ if (isset($_GET['msg'])) {
     </nav>
   </header>
 
-  <!-- Login Section -->
+
   <section class="hero" style="flex-direction: column; text-align: center;">
     <div class="hero-text" style="max-width: 420px; width: 100%;">
       <h1 style="color: var(--primary-dark); font-family: 'Volkhov', serif;">Welcome Back to <span>iSmart</span></h1>
       <p class="section-subtitle">Smart, secure banking — right at your fingertips.</p>
 
       <form action="../scripts/login_auth.php" method="POST" style="display: flex; flex-direction: column; gap: 1.2rem; margin-top: 2rem;">
-        <!-- Account Number -->
+       
         <div>
           <input 
             type="text" 
@@ -57,7 +57,7 @@ if (isset($_GET['msg'])) {
           <small id="error-accountNumber" style="color: red;"></small>
         </div>
 
-        <!-- Password -->
+     
         <div style="position: relative;">
           <input 
             type="password" 
@@ -71,14 +71,15 @@ if (isset($_GET['msg'])) {
           <small id="error-password" style="color: red;"><?php echo $error ?></small>
         </div>
 
-        <!-- Login Button -->
+        
         <button type="submit" name="submit" class="btn">Login</button>
       </form>
 
-      <!-- Register Link -->
+  
       <p style="margin-top: 1.5rem; font-size: 0.9rem; color: var(--text-light);">
         Don’t have an account? 
         <a href="register.php" style="color: var(--primary); font-weight: 600;">Register</a>
+        <a href="../scripts/recovery.php" style="color: var(--primary); font-weight: 600;">Recover password</a>
       </p>
     </div>
 
@@ -87,7 +88,7 @@ if (isset($_GET['msg'])) {
 
 
 
-  <!-- Scripts -->
+ 
   <script>
     const eyeIcon = document.getElementById('eye-login');
     const passwordInput = document.getElementById('password');

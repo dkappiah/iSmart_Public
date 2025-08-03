@@ -6,29 +6,25 @@ if (!isset($_SESSION['AccNo'])) {
 }
 
 require('../../configs/db.php');
-require('pp_check.php'); // PP Check
-require('../../scripts/get_userinfo.php'); // $name, $fName
+require('pp_check.php');
+require('../../scripts/get_userinfo.php');
 
-// Get balance and transactions
 $accNo = $_SESSION['AccNo'];
 $balance_query = "SELECT Balance FROM balance WHERE AccNo = '$accNo'";
 $balance_result = mysqli_query($conn, $balance_query);
 $balance_data = mysqli_fetch_assoc($balance_result);
 $balance = $balance_data['Balance'];
 
-// Get total credits (income) - excluding top-ups (where Sender = 0)
 $credit_query = "SELECT SUM(Amount) as total_credit FROM transactions WHERE Receiver = '$accNo' AND Sender != 0";
 $credit_result = mysqli_query($conn, $credit_query);
 $credit_data = mysqli_fetch_assoc($credit_result);
 $totalCredit = $credit_data['total_credit'] ?? 0;
 
-// Get total debits (expenses) - excluding top-ups (where Sender = 0)
 $debit_query = "SELECT SUM(Amount) as total_debit FROM transactions WHERE Sender = '$accNo' AND Sender != 0";
 $debit_result = mysqli_query($conn, $debit_query);
 $debit_data = mysqli_fetch_assoc($debit_result);
 $totalDebit = $debit_data['total_debit'] ?? 0;
 
-// Get recent transactions (7 most recent) with names
 $transactions_query = "SELECT t.*, 
                       sender.Name as sender_name, 
                       receiver.Name as receiver_name 
@@ -43,7 +39,6 @@ while ($row = mysqli_fetch_assoc($trns_result)) {
     $trns[] = $row;
 }
 
-// Check if there is an GET message
 $error = '';
 if (isset($_GET['msg'])) {
     $error = $_GET['msg'];
@@ -83,7 +78,6 @@ if (isset($_GET['msg'])) {
 
 <body>
     <div class="dashboard-container">
-        <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-brand">
                 <img src="../../assets/img/ismart.png" alt="iSmart Bank Logo">
@@ -138,9 +132,7 @@ if (isset($_GET['msg'])) {
             </nav>
         </aside>
 
-        <!-- Main Content -->
         <main class="main-content">
-            <!-- Top Navigation -->
             <header class="top-nav">
                 <div class="user-profile" style="margin-left: auto;">
                     <div class="user-avatar" style="background-image: url(<?php echo $pp ?>);"></div>
@@ -148,14 +140,12 @@ if (isset($_GET['msg'])) {
                 </div>
             </header>
 
-            <!-- Dashboard Content -->
             <div class="dashboard-content">
                 <div class="welcome-header">
                     <h1>Welcome back, <?php echo $fName ?></h1>
                     <p>Here's what's happening with your account today</p>
                 </div>
 
-                <!-- Stats Cards -->
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="stat-card-header">
@@ -190,9 +180,7 @@ if (isset($_GET['msg'])) {
                     </div>
                 </div>
 
-                <!-- Main Content Grid -->
                 <div class="content-grid">
-                    <!-- Transactions Card -->
                     <div class="transactions-card">
                         <div class="card-header">
                             <h2 class="card-title">Recent Transactions</h2>
@@ -220,7 +208,6 @@ if (isset($_GET['msg'])) {
                                         $remarks = $trn['Remarks'];
                                         
                                         if ($sender == 0) {
-                                            // Top-up transaction
                                             echo "<tr>
                                                 <td><span class='transaction-type credit'>Credit</span></td>
                                                 <td>Account Top-up<br><small>$remarks</small></td>
@@ -229,7 +216,6 @@ if (isset($_GET['msg'])) {
                                             </tr>";
                                         }
                                         elseif ($sender == $accNo) {
-                                            // Debit transaction (money sent to others)
                                             echo "<tr>
                                                 <td><span class='transaction-type debit'>Debit</span></td>
                                                 <td>Transfer to $receiver_name<br><small>$remarks</small></td>
@@ -237,7 +223,6 @@ if (isset($_GET['msg'])) {
                                                 <td>$date</td>
                                             </tr>";
                                         } else {
-                                            // Credit transaction (money received from others)
                                             echo "<tr>
                                                 <td><span class='transaction-type credit'>Credit</span></td>
                                                 <td>Transfer from $sender_name<br><small>$remarks</small></td>
@@ -291,7 +276,6 @@ if (isset($_GET['msg'])) {
     </div>
 
     <script>
-        // Mobile sidebar toggle
         document.addEventListener('DOMContentLoaded', function() {
             const sidebar = document.querySelector('.sidebar');
             const toggleBtn = document.createElement('button');

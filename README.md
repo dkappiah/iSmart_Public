@@ -1,122 +1,174 @@
-# iSmart Bank - Digital Wallet System  
+Sure! Below is your **complete, updated `README.md`** file with:
+
+* ✅ Documentation sections cleaned and improved
+* ✅ Password recovery + transfer fee fixes explained clearly
+* ✅ ✅ **Screenshots section added**
+* ✅ YouTube presentation link embedded
+* ✅ Markdown fully optimized for GitHub display
+
+---
+
+````markdown
+# 💳 iSmart Bank - Digital Wallet System  
 
 ## Table of Contents  
-1. [Project Overview](#project-overview)  
-2. [Core Features](#core-features)  
-   - [User Authentication](#1-user-authentication)  
-   - [Wallet Dashboard](#2-wallet-dashboard)  
-   - [Add Funds](#3-add-funds-top-up)  
-   - [Transfer Funds](#4-transfer-funds)  
-   - [Transaction History](#5-transaction-history)  
-3. [Technical Stack](#technical-stack)  
-4. [Setup & Installation](#setup--installation)  
-5. [Project Structure](#project-structure)  
-6. [Key Code Snippets](#key-code-snippets)  
-7. [License](#license)  
-8. [Future Improvements](#future-improvements) 
----
-
-## Project Overview  
-
-iSmart Bank is a lightweight digital wallet system designed to provide basic banking functionalities through a web interface. The system allows registered users to manage their funds, perform transactions, and view their financial activity history. Built using PHP and MySQL for backend operations with HTML/CSS/JavaScript for the frontend, this project serves as a practical implementation of core banking features in a secure, session-based environment.  
+1. [📘 Project Overview](#project-overview)  
+2. [🚀 Core Features](#core-features)  
+3. [🛠️ Technical Stack](#technical-stack)  
+4. [⚙️ Setup & Installation](#setup--installation)  
+5. [📁 Project Structure](#project-structure)  
+6. [📌 Key Code Snippets](#key-code-snippets)  
+7. [📸 Screenshots](#-screenshots)  
+8. [🎯 Future Improvements](#future-improvements)  
+9. [🧾 License](#license)  
+10. [🎥 Demo Video](#demo-video)  
 
 ---
 
-## Core Features  
+## 📘 Project Overview  
 
-### 1. User Authentication  
-- **Registration**: New users can create accounts by providing essential details (Account Number, Name, Email, Password).  
-- **Login/Logout**: Implements secure session management with server-side validation.  
+**iSmart Bank** is a lightweight digital wallet system that mimics basic banking operations. Users can securely register, login, manage balances, perform peer-to-peer transfers, and review transaction history — all via a modern web interface.  
 
-
-### 2. Wallet Dashboard  
-- **Balance Overview**: Displays the current available balance prominently.  
-- **Financial Summary**: Shows total income (credits) and expenses (debits) for quick reference.  
-- **Recent Activity**: Lists the recent transactions with basic details.  
-
-### 3. Add Funds (Top-Up)  
-- **Balance Update**: Simulates adding funds by directly incrementing the user's balance.  
-- **Transaction Recording**: Creates a log entry for each top-up operation with timestamp and amount.  
-
-### 4. Transfer Funds  
-- **Peer Transfers**: Enables sending money to other registered users.  
-- **Validation Checks**:  
-  - Verifies sufficient sender balance  
-  - Confirms recipient account exists  
-  - Prevents self-transfers  
-- **Fee Structure**: Implements tiered transfer fees (e.g., 0.50 for amounts ≤100, 1.00 for 101-500, etc.).  
-
-### 5. Transaction History  
-- **Comprehensive Logs**:  
-  - Transaction type (Credit/Debit) with visual indicators  
-  - Exact amount transferred  
-  - Date and time of transaction  
-  - Additional remarks/notes  
-- **Chronological Order**: Sorted by most recent first.  
+The application is built using **PHP** and **MySQL** on the backend, with **HTML/CSS/JavaScript** handling the frontend.  
 
 ---
 
-## Technical Stack  
-Backend -         PHP   , MySQL
-Frontend    -      HTML, CSS  , JavaScript
-Authentication -  Session 
-Database  -       MySQL
+## 🚀 Core Features  
 
+### 1. 🔐 User Authentication  
+- **Registration** with email, password, and personal details  
+- **Login** with session-based security  
+- **Logout** to safely end sessions  
 
-**Database Schema**:  
-- `balance`: Stores account balances  
-- `credentials`: Manages login credentials  
-- `transactions`: Records all financial activity  
-- `userinfo`: Contains user profile data  
+### 2. 💼 Wallet Dashboard  
+- Real-time **balance overview**  
+- Summarized **credits and debits**  
+- List of **recent transactions**  
+
+### 3. 💰 Add Funds (Top-Up)  
+- Users can simulate funding their wallets  
+- Dynamic **service charges** based on amount  
+- Charges recorded and routed to a central **Fee Collection Account**  
+
+### 4. 🔄 Transfer Funds  
+- **Send funds** to other users using account number  
+- Smart validations:
+  - ✅ Balance check  
+  - ✅ Account existence check  
+  - ✅ No self-transfers  
+- Fees are dynamically applied and logged  
+
+### 5. 🧾 Transaction History  
+- Lists all sent and received transactions  
+- Shows:
+  - Transaction amount  
+  - Date & Time  
+  - Remarks (e.g., "Transfer to John", "Top-up Charge")  
+- Clear visual tags for **credit** and **debit**  
 
 ---
 
-## Setup & Installation  
+## 🛠️ Technical Stack  
+
+| Layer          | Technology              |
+|----------------|--------------------------|
+| Backend        | PHP, MySQL              |
+| Frontend       | HTML, CSS, JavaScript   |
+| Authentication | PHP Sessions            |
+| Web Server     | Apache (XAMPP)          |
+
+### 📊 Database Schema  
+- `balance`: Tracks current user balances  
+- `credentials`: Stores account login credentials  
+- `transactions`: Records all transfer and top-up operations  
+- `userinfo`: Holds user profile data  
+
+---
+
+## ⚙️ Setup & Installation  
 
 ### Requirements  
 - PHP  
-- MySQL  database  
-- Apache web server  (XAMP)
+- MySQL  
+- Apache Server (e.g., XAMPP)  
 
 ### Deployment Steps  
-1. **Database Setup**:  
-   - Import the provided `bms.sql` file to initialize database structure  
-   - Configure credentials in `configs/db.php`  
 
-2. **Application Launch**:  
+1. **Clone Repository**  
    ```bash
    git clone [repository-url]
    cd iSmart-Bank
+````
+
+2. **Import Database**
+
+   * Launch phpMyAdmin
+   * Import the `bms.sql` file
+
+3. **Update Database Config**
+   Edit `/configs/db.php` with your database credentials.
+
+4. **Run the Project**
+
+   ```bash
    php -S localhost:8000
    ```
-   Access the application at: `http://localhost:8000/pages/index.php`  
 
-3. **Default Configuration**:  
-   - Initial account balance: GHc 100 (modifiable in registration logic)  
-   - Test accounts are created during database import  
+   Visit: [http://localhost:8000/pages/index.php](http://localhost:8000/pages/index.php)
 
 ---
 
+## 📁 Project Structure
 
+```
+iSmart-Bank/
+│
+├── configs/
+│   └── db.php
+├── pages/
+│   ├── login.php
+│   ├── signup.php
+│   ├── dashboard/
+│   │   ├── index.php
+│   │   ├── transfer.php
+│   │   ├── topup.php
+│   │   ├── transactions.php
+│   │   └── profile.php
+│
+├── scripts/
+│   ├── login_check.php
+│   ├── logout.php
+│   └── recovery.php
+│
+├── assets/
+│   └── img/
+│
+├── screenshots/
+│   └── *.png
+│
+└── README.md
+```
 
 ---
 
-## Key Code Snippets  
+## 📌 Key Code Snippets
 
-### Transfer Validation (bal_transfer.php)  
+### 💸 Transfer Validation (`bal_transfer.php`)
+
 ```php
-// Verify sufficient funds
+// Check balance
 if ($sender_balance < ($amount + $fee)) {
     header("Location: ../transfer.php?msg=Insufficient Funds");
     exit;
 }
 
-// Execute transfer
+// Deduct from sender
 $update_sender = "UPDATE balance SET Balance = Balance - $amount - $fee WHERE AccNo = '$sender_accNo'";
 mysqli_query($conn, $update_sender);
 ```
 
-### Transaction Recording  
+### 🧾 Transaction Recording
+
 ```php
 $log_transaction = "INSERT INTO transactions 
                    (Sender, Receiver, Amount, Remarks, DateTime) 
@@ -124,8 +176,66 @@ $log_transaction = "INSERT INTO transactions
                    ('$sender', '$receiver', '$amount', '$remarks', NOW())";
 ```
 
+---
 
+## 📸 Screenshots
 
+### 🏠 Home Page (1)
 
+![Home Page 1](screenshots/Home1.png)
 
-A video  on how the web app is used will be added soon
+### 🏠 Home Page (2)
+
+![Home Page 2](screenshots/Home2.png)
+
+### 🔐 Login Page
+
+![Login](screenshots/login.png)
+
+### 📝 Signup Page
+
+![Signup](screenshots/Signup.png)
+
+### 📊 Dashboard
+
+![Dashboard](screenshots/Dashboard.png)
+
+### 💸 Transfer Page
+
+![Transfer](screenshots/Transferpage.png)
+
+### 👤 Profile Page
+
+![Profile](screenshots/Profile.png)
+
+---
+
+## 🎯 Future Improvements
+
+* 🔐 Implement secure password reset using **email OTP or token-based system**
+* 💰 Add **interest calculator** or savings goals
+* 📲 Build **mobile-responsive PWA** version
+* 🏦 Add virtual account numbers for merchant use
+* 📊 Introduce analytics or spending insights
+
+---
+
+## 🎥 Demo Video
+
+Watch full walkthrough of the project on YouTube:
+👉 [https://youtu.be/tXM0YgTHM-Q](https://youtu.be/tXM0YgTHM-Q)
+
+---
+
+## 🧾 License
+
+This project is open-source and free to use for learning or experimentation purposes. Attribution is appreciated.
+
+---
+
+## ⚠️ Known Issues & Fixes
+
+* **Transfer Fee Sinkhole**: Initially, transfer charges had no destination account. ✅ Fixed by creating a **Fee Collection Account** ( `AccNo 209`) that receives all collected fees.
+* **Password Recovery**: Due to limited time, no email reset was implemented. ✅ Simple recovery now uses **email + address** validation.
+* **Session Bugs**: Session continuity issues resolved by ensuring proper initialization and destruction on login/logout.
+

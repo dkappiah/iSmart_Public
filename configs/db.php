@@ -1,5 +1,5 @@
 <?php
-// Database Connection
+// Dconnection to the database file bms.php
 $host = "localhost";
 $dbusername = "root";
 $dbpassword = "";

@@ -1,15 +1,25 @@
 <?php
+
+/**
+ * Start session and ensure user is logged in
+ * Redirects to login page if not authenticated
+ */
 session_start();
 if (!isset($_SESSION['AccNo'])) {
     header('Location: ../login.php?msg=Please login to continue');
     exit;
 }
 
-require('../../configs/db.php');
-require('pp_check.php'); // PP Check
-require('../../scripts/get_userinfo.php'); // $fName, $accNo
 
-// Get transactions and account names
+require('../../configs/db.php');
+require('pp_check.php');
+require('../../scripts/get_userinfo.php');
+
+/**
+ * Fetch user transaction history with sender and receiver names
+ * Joins userinfo table to get full names associated with accounts
+ * Sorts results by newest transactions first
+ */
 $trns = [];
 $query = "SELECT t.*, u1.Name as SenderName, u2.Name as ReceiverName 
           FROM transactions t
@@ -22,6 +32,7 @@ while ($row = mysqli_fetch_assoc($result)) {
     $trns[] = $row;
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">

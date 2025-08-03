@@ -11,7 +11,7 @@
    
 </head>
 <body>
-    <!-- Header -->
+  
     <header>
         <nav class="navbar">
             <div class="logo">
@@ -32,16 +32,16 @@
     <section class="hero">
         <div class="hero-text">
             <h1>Bank Transfers Done the <span>Smart Way</span></h1>
-            <p>iSmart Bank revolutionizes digital wallet payments with instant transfers, smart routing, and strong security. Move money effortlessly between accounts, friends, and businesses.</p>
-            <a href="register.html" class="btn">Get Started</a>
+            <p>iSmart Bank revolutionizses digital wallet payments with instant transfers, smart routing, and strong security. Move money effortlessly between accounts, friends, and businesses.</p>
+            <a href="../pages/register.php" class="btn">Get Started</a>
         </div>
         <div class="hero-img">
             <img src="https://illustrations.popsy.co/blue/digital-nomad.svg" alt="Digital Banking">
         </div>
     </section>
 
-    <!-- Services Section -->
-    <section class="services" id="services">
+ 
+    <section class="serv/ices" id="services">
         <h2 class="section-title">Our Smart Services</h2>
         <p class="section-subtitle">Everything you need for modern digital banking</p>
         
@@ -138,14 +138,13 @@
     </section>
 
 
-    <!-- CTA Section -->
     <section class="cta">
         <h2 class="section-title">Ready to Bank Smarter?</h2>
         <p class="section-subtitle">Join iSmart Bank today and experience the future of digital transfers</p>
         <a href="register.php" class="btn">Open Your Account For Free!!!</a>
     </section>
 
-    <!-- Footer -->
+
     <footer id="about">
         <div class="footer-content">
             <div class="footer-column">
