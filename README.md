@@ -15,9 +15,9 @@
 
 ## Project Overview  
 
-**iSmart Bank** is a lightweight digital wallet system that mimics basic banking operations. Users can securely register, login, manage balances, perform peer-to-peer transfers, and review transaction history — all via a modern web interface.  
+iSmart Bank is a lightweight digital wallet system that mimics basic banking operations. Users can securely register, login, manage balances, perform peer-to-peer transfers, and review transaction history  all via a modern web interface.  
 
-The application is built using **PHP** and **MySQL** on the backend, with **HTML/CSS/JavaScript** handling the frontend.  
+The application is built using PHP and  MySQL on the backend, with HTML/CSS/JavaScript handling the frontend.  
 
 ---
 
@@ -58,10 +58,10 @@ The application is built using **PHP** and **MySQL** on the backend, with **HTML
 
 ## Technical Stack  
 
-**Backend**: PHP, MySQL  
-**Frontend**: HTML, CSS, JavaScript  
-**Authentication**: PHP Sessions  
-**Web Server**: Apache (XAMPP)  
+Backend: PHP, MySQL  
+Frontend: HTML, CSS, JavaScript  
+Authentication: PHP Sessions  
+Web Server: Apache (XAMPP)  
 
 ### Database Schema  
 - `balance`: Tracks current user balances  
@@ -80,37 +80,25 @@ The application is built using **PHP** and **MySQL** on the backend, with **HTML
 
 ### Deployment Steps  
 
-1. **Clone Repository**  
+1. Clone Repository
    ```bash
    git clone [repository-url]
    cd iSmart-Bank
    ```
 
-2. **Import Database**
+2. Import Database
    - Launch phpMyAdmin
    - Import the `bms.sql` file
 
-3. **Update Database Config**
+3. Update Database Config
    Edit `/configs/db.php` with your database credentials.
 
-4. **Run the Project**
+4. Run the Project
    ```bash
-   php -S localhost:8000
+   php  localhost:8000
    ```
    Visit: [http://localhost:8000/pages/index.php](http://localhost:8000/pages/index.php)
 
----
-
-
-
-### Transaction Recording
-
-```php
-$log_transaction = "INSERT INTO transactions 
-                   (Sender, Receiver, Amount, Remarks, DateTime) 
-                   VALUES 
-                   ('$sender', '$receiver', '$amount', '$remarks', NOW())";
-```
 
 ---
 
@@ -158,7 +146,7 @@ Watch full walkthrough of the project on YouTube:
 
 ## Known Issues & Fixes
 
-- **Transfer Fee Sinkhole**: Initially, transfer charges had no destination account. Fixed by creating a Fee Collection Account (AccNo 209) that receives all collected fees.
-- **Password Recovery**: Due to limited time, no email reset was implemented. Simple recovery now uses email + address validation.
-- **Session Bugs**: Session continuity issues resolved by ensuring that there is  proper initialization and destruction on login/logout.
+- Transfer Fee Sinkhole: Initially, transfer charges had no destination account. Fixed by creating a Fee Collection Account (AccNo 209) that receives all collected fees.
+- Password Recovery: Due to limited time, no email reset was implemented. Simple recovery now uses email + address validation.
+- Session Bugs: Session continuity issues resolved by ensuring that there is  proper initialization and destruction on login/logout.
 ```
