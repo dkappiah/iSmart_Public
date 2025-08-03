@@ -26,6 +26,16 @@ The project also supports dark mode and SweetAlert notifications for an enhanced
 - SweetAlert2 (Popup alerts)
 - HTML/CSS + Font Awesome (Frontend)
 
+## Summary of Design and Technology Choices
+
+DigiPay was designed with simplicity, responsiveness, and modularity in mind. The following design and technology decisions were made:
+
+- **Frontend:** HTML5, CSS3, and vanilla JavaScript for core interactivity. Font Awesome is used for icons, and SweetAlert2 for user-friendly alerts.
+- **Backend:** PHP with PDO for secure database interactions and session management.
+- **Database:** MySQL (accessed via PDO) to handle users, balances, and transactions.
+- **Email Notifications:** PHPMailer was used to simulate and optionally support real-time email notifications.
+- **Security Measures:** Passwords are securely hashed using `password_hash()` and verified with `password_verify()`. Input validation and session checks are consistently applied.
+
 ## Project Structure
 
 ```
@@ -56,7 +66,7 @@ digital-wallet/
 Step 1:
 **Clone or download the project**
 ```bash
-git clone https://github.com/m4st3rch13f/digital-wallet.git
+git clone https://github.com/dkappiah/iSmart_Public/tree/afif_jawhary
 ```
 
 Step 2:
